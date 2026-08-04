@@ -24,7 +24,7 @@ export default function ProductionPage() {
   const navigate = useNavigate()
   const { getProject, updateProject } = useProjects()
   const project = getProject(projectId)
-  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, updateShot, setStatus, addNote } = useShots(projectId, project, updateProject)
+  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, updateShot, deleteShot, setStatus, addNote } = useShots(projectId, project, updateProject)
 
   const [mode, setMode] = useState('tech') // 'tech' | 'talent'
   const [activeScene, setActiveScene] = useState(null)
