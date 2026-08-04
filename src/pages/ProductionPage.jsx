@@ -210,6 +210,7 @@ export default function ProductionPage() {
                         onStatusChange={setStatus}
                         onNoteChange={addNote}
                         onEdit={openEditShotForm}
+                        onDelete={deleteShot}
                       />
                     ))
                   )}

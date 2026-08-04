@@ -265,9 +265,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   padding: 8px 10px 10px 18px;
   border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.shot-card__left-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.shot-card__right-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .shot-card__status-btns {
@@ -332,4 +345,24 @@
   background: rgba(0, 230, 118, 0.18);
   border-color: rgba(0, 230, 118, 0.6);
   box-shadow: 0 0 12px rgba(0, 230, 118, 0.2);
+}
+
+.shot-card__btn--delete {
+  color: var(--status-revisi);
+  border-color: rgba(255, 82, 82, 0.2);
+  background: transparent;
+  padding: 7px 9px;
+}
+
+.shot-card__btn--delete:hover {
+  background: rgba(255, 82, 82, 0.1);
+  border-color: rgba(255, 82, 82, 0.4);
+}
+
+.shot-card__btn--delete-confirm {
+  color: white;
+  border-color: var(--status-revisi);
+  background: var(--status-revisi);
+  font-size: 11px;
+  animation: pulse 0.8s ease-in-out infinite;
 }

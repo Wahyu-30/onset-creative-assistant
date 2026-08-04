@@ -2,17 +2,18 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Package, AlignLeft, Quote, Link2, ChevronDown, CheckCircle2,
-  RotateCcw, StickyNote, Image, Video, Edit3
+  RotateCcw, StickyNote, Image, Video, Edit3, Trash2
 } from 'lucide-react'
 import StatusBadge from './StatusBadge'
 import ImageViewer from '../ImageViewer/ImageViewer'
 import QuickLog from './QuickLog'
 
-export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, index }) {
+export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, index }) {
   const [expanded, setExpanded] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
   const [showLog, setShowLog] = useState(false)
   const [expandOverflow, setExpandOverflow] = useState('hidden')
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
 
 
   const handleTakeDone = (e) => {
@@ -184,6 +185,10 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
                           className="shot-card__ref-img"
                           onClick={() => setViewerImg(img)}
                           whileTap={{ scale: 0.96 }}
+                          onError={e => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling?.style && (e.target.nextSibling.style.display = 'flex')
+                          }}
                         />
                       ))}
                     </div>
@@ -239,39 +244,65 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
 
         {/* Action Bar */}
         <div className="shot-card__actions">
-          <button
-            className={`shot-card__log-btn ${showLog ? 'shot-card__log-btn--active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); setShowLog(!showLog) }}
-          >
-            <Edit3 size={13} />
-            {shot.notes ? 'Edit Catatan' : 'Catatan'}
-          </button>
-          <button
-            className="shot-card__log-btn"
-            onClick={() => onEdit(shot)}
-            aria-label={`Edit ${shot.sceneLabel}`}
-          >
-            <Edit3 size={13} />
-            Edit
-          </button>
+          <div className="shot-card__left-actions">
+            <button
+              className={`shot-card__log-btn ${showLog ? 'shot-card__log-btn--active' : ''}`}
+              onClick={(e) => { e.stopPropagation(); setShowLog(!showLog) }}
+            >
+              <Edit3 size={13} />
+              {shot.notes ? 'Edit Catatan' : 'Catatan'}
+            </button>
+            <button
+              className="shot-card__log-btn"
+              onClick={() => onEdit(shot)}
+              aria-label={`Edit ${shot.sceneLabel}`}
+            >
+              <Edit3 size={13} />
+              Edit
+            </button>
+          </div>
 
-          <div className="shot-card__status-btns">
-            <motion.button
-              className={`shot-card__btn shot-card__btn--revisi ${isRevisi ? 'active' : ''}`}
-              onClick={handleRevisi}
-              whileTap={{ scale: 0.9 }}
-            >
-              <RotateCcw size={14} />
-              Revisi
-            </motion.button>
-            <motion.button
-              className={`shot-card__btn shot-card__btn--done ${isDone ? 'active' : ''}`}
-              onClick={handleTakeDone}
-              whileTap={{ scale: 0.9 }}
-            >
-              <CheckCircle2 size={14} />
-              {isDone ? 'Done ✓' : 'Take Done'}
-            </motion.button>
+          <div className="shot-card__right-actions">
+            {/* Delete with 2-tap confirmation */}
+            {deleteConfirm ? (
+              <motion.button
+                className="shot-card__btn shot-card__btn--delete-confirm"
+                onClick={(e) => { e.stopPropagation(); onDelete(shot.id) }}
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Trash2 size={13} />
+                Yakin hapus?
+              </motion.button>
+            ) : (
+              <motion.button
+                className="shot-card__btn shot-card__btn--delete"
+                onClick={(e) => { e.stopPropagation(); setDeleteConfirm(true); setTimeout(() => setDeleteConfirm(false), 3000) }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Trash2 size={13} />
+              </motion.button>
+            )}
+
+            <div className="shot-card__status-btns">
+              <motion.button
+                className={`shot-card__btn shot-card__btn--revisi ${isRevisi ? 'active' : ''}`}
+                onClick={handleRevisi}
+                whileTap={{ scale: 0.9 }}
+              >
+                <RotateCcw size={14} />
+                Revisi
+              </motion.button>
+              <motion.button
+                className={`shot-card__btn shot-card__btn--done ${isDone ? 'active' : ''}`}
+                onClick={handleTakeDone}
+                whileTap={{ scale: 0.9 }}
+              >
+                <CheckCircle2 size={14} />
+                {isDone ? 'Done ✓' : 'Take Done'}
+              </motion.button>
+            </div>
           </div>
         </div>
 
