@@ -2,11 +2,41 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Package, AlignLeft, Quote, Link2, ChevronDown, CheckCircle2,
-  RotateCcw, StickyNote, Image, Video, Edit3, Trash2
+  RotateCcw, StickyNote, Image, Video, Edit3, Trash2, ExternalLink
 } from 'lucide-react'
 import StatusBadge from './StatusBadge'
 import ImageViewer from '../ImageViewer/ImageViewer'
 import QuickLog from './QuickLog'
+
+function RefImage({ img, index, onClick }) {
+  const [error, setError] = useState(false)
+
+  if (error) {
+    return (
+      <a
+        href={img}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="shot-card__ref-error"
+        onClick={e => e.stopPropagation()}
+      >
+        <ExternalLink size={12} />
+        Buka Referensi
+      </a>
+    )
+  }
+
+  return (
+    <motion.img
+      src={img}
+      alt={`Ref ${index + 1}`}
+      className="shot-card__ref-img"
+      onClick={onClick}
+      whileTap={{ scale: 0.96 }}
+      onError={() => setError(true)}
+    />
+  )
+}
 
 export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, index }) {
   const [expanded, setExpanded] = useState(false)
@@ -178,17 +208,11 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                     </div>
                     <div className="shot-card__images">
                       {shot.referenceImages.map((img, i) => (
-                        <motion.img
+                        <RefImage
                           key={i}
-                          src={img}
-                          alt={`Ref ${i + 1}`}
-                          className="shot-card__ref-img"
+                          img={img}
+                          index={i}
                           onClick={() => setViewerImg(img)}
-                          whileTap={{ scale: 0.96 }}
-                          onError={e => {
-                            e.target.style.display = 'none'
-                            e.target.nextSibling?.style && (e.target.nextSibling.style.display = 'flex')
-                          }}
                         />
                       ))}
                     </div>
