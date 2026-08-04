@@ -8,8 +8,30 @@ import StatusBadge from './StatusBadge'
 import ImageViewer from '../ImageViewer/ImageViewer'
 import QuickLog from './QuickLog'
 
+function getDirectImageUrl(url) {
+  if (!url) return url;
+  
+  // Google Drive format: https://drive.google.com/file/d/FILE_ID/view
+  const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
+  const match = url.match(driveRegex);
+  if (match && match[1]) {
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+  
+  // Alternative Google Drive format: https://drive.google.com/open?id=FILE_ID
+  const driveOpenRegex = /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/;
+  const matchOpen = url.match(driveOpenRegex);
+  if (matchOpen && matchOpen[1]) {
+    return `https://drive.google.com/uc?export=view&id=${matchOpen[1]}`;
+  }
+  
+  return url;
+}
+
 function RefImage({ img, index, onClick }) {
   const [error, setError] = useState(false)
+
+  const directUrl = getDirectImageUrl(img)
 
   if (error) {
     return (
@@ -28,10 +50,10 @@ function RefImage({ img, index, onClick }) {
 
   return (
     <motion.img
-      src={img}
+      src={directUrl}
       alt={`Ref ${index + 1}`}
       className="shot-card__ref-img"
-      onClick={onClick}
+      onClick={() => onClick(directUrl)}
       whileTap={{ scale: 0.96 }}
       onError={() => setError(true)}
     />
@@ -212,7 +234,7 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                           key={i}
                           img={img}
                           index={i}
-                          onClick={() => setViewerImg(img)}
+                          onClick={(directUrl) => setViewerImg(directUrl)}
                         />
                       ))}
                     </div>
