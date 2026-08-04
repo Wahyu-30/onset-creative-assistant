@@ -26,12 +26,13 @@ export const SAMPLE_PROJECTS = [
         equipment: ['Gimbal'],
         briefAction: 'Talent masuk ke bar dengan natural dan santai',
         dialog: 'come make your coffee with us!',
-        referenceImages: [],
-        referenceLinks: [],
+        referenceImages: ['https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600'],
+        referenceLinks: ['https://www.tiktok.com/@projectwid/video/7351234567890'],
         status: 'TAKE_DONE',
         notes: 'Take 2 paling natural, lighting oke',
         updatedAt: '2026-07-07T10:00:00Z'
       },
+
       {
         id: 'S02',
         scene: 2,
@@ -56,10 +57,11 @@ export const SAMPLE_PROJECTS = [
         equipment: ['Lighting A', 'Tripod'],
         briefAction: 'Close up angka di layar timbangan kopi, tampilkan berat yang tepat',
         dialog: "it's one of our favorite beans right now",
-        referenceImages: [],
+        referenceImages: ['https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600','https://images.unsplash.com/photo-1497515114629-f71d768fd07c?w=600'],
         referenceLinks: [],
         status: 'REVISI',
         notes: 'Lighting terlalu keras, shadow tidak bagus. Perlu diffuser.',
+
         updatedAt: '2026-07-07T10:10:00Z'
       },
       {
@@ -208,10 +210,11 @@ export const SAMPLE_PROJECTS = [
         equipment: ['Gimbal', 'Mic Wireless (Clip-on)'],
         briefAction: 'Talent tersenyum ke arah kamera sambil menepuk-nepuk fishbowl',
         dialog: '<SENYUM HANGAT> Siapa nih yang kemarin makan di Grillme Gajahmada terus kaget tiba-tiba disuruh masukin struk ke sini? Yap! Kemarin kita abis ngadain Secret Promo dadakan buat bagi-bagi tiket Stand Up Comedy khusus buat kalian yang dine-in langsung di outlet Gajahmada! Makanya, sering-sering makan di Grillme, hahahaha!',
-        referenceImages: [],
-        referenceLinks: [],
+        referenceImages: ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600'],
+        referenceLinks: ['https://www.instagram.com/reel/grillme_sample'],
         status: 'TAKE_DONE',
         notes: 'Ekspresi bagus di take 3',
+
         updatedAt: '2026-06-04T13:15:00Z'
       },
       {

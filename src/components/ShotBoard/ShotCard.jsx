@@ -99,8 +99,9 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
           </div>
           <div className="shot-card__header-right">
             {hasReferences && (
-              <span className="shot-card__reference-indicator" title={`Referensi: ${referenceLabel}`} aria-label={`Referensi tersedia: ${referenceLabel}`}>
-                <Link2 size={13} />
+              <span className="shot-card__reference-indicator" title={`Referensi: ${referenceLabel}`}>
+                {imageCount > 0 && <span>📷{imageCount}</span>}
+                {videoCount > 0 && <span>🎬{videoCount}</span>}
               </span>
             )}
             <StatusBadge status={shot.status} size="sm" />
@@ -168,7 +169,7 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
                 )}
 
                 {/* Reference Images */}
-                {shot.referenceImages?.length > 0 && (
+                {shot.referenceImages?.length > 0 ? (
                   <div className="shot-card__detail-row">
                     <div className="shot-card__detail-label">
                       <Image size={12} />
@@ -187,14 +188,19 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <div className="shot-card__ref-empty">
+                    <Image size={13} />
+                    <span>Belum ada foto referensi — tap Edit untuk menambahkan</span>
+                  </div>
                 )}
 
                 {/* Reference Video Links */}
-                {shot.referenceLinks?.length > 0 && (
+                {shot.referenceLinks?.length > 0 ? (
                   <div className="shot-card__detail-row">
                     <div className="shot-card__detail-label">
                       <Video size={12} />
-                      Video Referensi
+                      Video Referensi (TikTok / Reels)
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {shot.referenceLinks.map((link, i) => (
@@ -206,11 +212,16 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
                           className="shot-card__ref-link"
                           onClick={e => e.stopPropagation()}
                         >
-                          <Link2 size={11} />
+                          <Video size={11} />
                           {link.length > 40 ? link.slice(0, 40) + '...' : link}
                         </a>
                       ))}
                     </div>
+                  </div>
+                ) : (
+                  <div className="shot-card__ref-empty">
+                    <Video size={13} />
+                    <span>Belum ada link video referensi — tap Edit untuk menambahkan</span>
                   </div>
                 )}
 
