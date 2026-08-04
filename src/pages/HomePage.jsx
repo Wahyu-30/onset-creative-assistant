@@ -170,8 +170,9 @@ export default function HomePage() {
 }
 
 function ProjectCard({ project, index, onOpen, onDelete, onArchive, isDeleting, isArchived }) {
-  const doneCount = project.shots.filter(s => s.status === 'TAKE_DONE').length
-  const totalCount = project.shots.length
+  const shots = project.shots || []
+  const doneCount = shots.filter(s => s.status === 'TAKE_DONE').length
+  const totalCount = shots.length
   const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
 
   return (
