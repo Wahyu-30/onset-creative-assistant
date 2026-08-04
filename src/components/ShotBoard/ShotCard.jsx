@@ -12,6 +12,8 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
   const [expanded, setExpanded] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
   const [showLog, setShowLog] = useState(false)
+  const [expandOverflow, setExpandOverflow] = useState('hidden')
+
 
   const handleTakeDone = (e) => {
     e.stopPropagation()
@@ -124,8 +126,15 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: 'easeInOut' }}
-              style={{ overflow: 'hidden' }}
+              style={{ overflow: expandOverflow }}
+              onAnimationStart={(def) => {
+                if (def === 'exit') setExpandOverflow('hidden')
+              }}
+              onAnimationComplete={(def) => {
+                if (def === 'animate') setExpandOverflow('visible')
+              }}
             >
+
               <div className="shot-card__details">
 
                 {/* Equipment */}
