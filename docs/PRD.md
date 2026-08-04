@@ -147,8 +147,9 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 | Equipment | Chips/tag per alat |
 | Brief Action | Deskripsi singkat gerakan |
 | Dialog/Naskah | Teks talent dengan badge instruksi |
-| Foto Referensi | Tap to zoom fullscreen |
+| Foto Referensi | Tap to zoom fullscreen. Mendukung smart-fallback (menjadi tombol link eksternal) jika hotlink diblokir (misal Pinterest/IG). Mendukung In-App Iframe Preview khusus untuk link share Google Drive. |
 | Link Referensi | Quick link ke TikTok/Reels/dokumen |
+| Hapus Shot | Tombol trash dengan konfirmasi 2-tap untuk menghapus shot. |
 | Quick Log | Catatan lapangan per shot |
 
 #### Tombol Status

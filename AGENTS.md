@@ -204,7 +204,14 @@ useProjects() → projects, CRUD functions
 
 ---
 
-## 🔜 Fase Pengembangan Berikutnya
+## 🔜 Histori & Fase Pengembangan Berikutnya
+
+### ✅ Fase 1 (Selesai) — UI/UX & Core Fixes
+- **Referensi Visual & UX**: Indikator referensi (🔗/📷/🎬) di kartu collapsed, tap-to-zoom dengan `framer-motion`, dan perbaikan CSS clipping bug (`expandOverflow`).
+- **Smart Image Fallback**: Menangani hotlink protection (Pinterest/IG) dengan merubah image yang `onError` menjadi tombol eksternal.
+- **Google Drive In-App Viewer**: Link Google Drive dikonversi menjadi `<iframe>` modal overlay secara otomatis agar kru tidak terlempar keluar dari web.
+- **Fitur Hapus**: Hapus shot dengan konfirmasi 2-tap (aman dari misclick).
+- **Stability**: Penambahan `vercel.json` untuk SPA routing fallback dan `ErrorBoundary` React untuk mencegah black screen jika terjadi JS crash.
 
 ### Fase 2 — Google Sheets Integration
 - Buat `src/services/sheetsAPI.js` — proxy ke backend Node.js
