@@ -1,35 +1,12 @@
-# On-Set Creative Assistant — Task List
+# Phase 1 Tasks: UI/UX Refinements & Core Fixes
 
-## Fase 1: Core App (MVP)
-
-### Setup
-- [x] Init Vite + React project
-- [x] Install dependencies
-- [x] Setup folder structure
-- [x] Setup global CSS design system
-
-### Components
-- [x] App.jsx + Router setup
-- [x] ProjectManager (Home page)
-- [x] ShotCard component
-- [x] ProgressBar component
-- [x] ModeToggle (Tech ↔ Talent)
-- [x] FilterBar (scene/status filter)
-- [x] TalentView (script view)
-- [x] ImageViewer (fullscreen tap-to-zoom)
-- [x] QuickLog input
-- [x] StatusBadge
-- [x] ShotForm (tambah/edit shot)
-- [x] ProductionPage (halaman utama)
-
-### Hooks & Data
-- [x] useLocalStorage hook
-- [x] useProjects hook
-- [x] useShots hook
-- [x] sampleData.js (Project W & Grillme)
-
-### Polish
-- [x] Animations & transitions (framer-motion)
-- [x] Mobile-first responsive layout
-- [x] Build validation — 0 errors ✅
-- [x] Dev server running http://localhost:5173/
+- [x] **Sample Data Fix**: Restore `status` and `notes` fields in Scene 1 data that were accidentally removed.
+- [x] **Reference Visual Indicators**: Add 🔗/📷/🎬 emoji indicators to collapsed `ShotCard` to show reference availability at a glance.
+- [x] **Equipment Metadata**: Show concise shot type and equipment on collapsed cards.
+- [x] **Expanded Reference Slots**: Implement image thumbnails with tap-to-zoom and external video link buttons in expanded `ShotCard`.
+- [x] **Card Expansion Bug**: Fix CSS `overflow: hidden` issue that clipped expanded content during animation.
+- [x] **Error Handling (Image Fallback)**: Automatically switch broken image references (e.g. from Pinterest/IG due to hotlink protection) to a "Buka Referensi" external link button.
+- [x] **Google Drive Integration**: Automatically parse standard Google Drive share links into direct-image links, and render them in a custom in-app `<iframe>` preview modal instead of forcing users out of the app.
+- [x] **Shot Deletion**: Implement a 2-tap confirmation trash button to delete shots directly from the `ShotCard`.
+- [x] **SPA Routing Fix**: Add `vercel.json` to prevent 404 errors when refreshing sub-routes in production.
+- [x] **Global Error Boundary**: Add React Error Boundary to catch UI crashes and display a graceful fallback with a reset button.
