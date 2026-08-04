@@ -35,16 +35,16 @@ function RefImage({ img, index, onClick }) {
 
   if (error) {
     return (
-      <a
-        href={img}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
         className="shot-card__ref-error"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick(img); // Pass the original URL to open in iframe
+        }}
       >
         <ExternalLink size={12} />
-        Buka Referensi
-      </a>
+        Preview di Web
+      </button>
     )
   }
 

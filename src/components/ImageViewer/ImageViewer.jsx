@@ -5,6 +5,20 @@ import { X, ExternalLink, ImageOff } from 'lucide-react'
 export default function ImageViewer({ src, onClose }) {
   const [loadFailed, setLoadFailed] = useState(false)
 
+  // Cek apakah ini link Google Drive
+  const isGoogleDrive = src.includes('drive.google.com')
+  let iframeUrl = src
+
+  if (isGoogleDrive) {
+    // Jika format uc?export=view, ambil ID-nya dan ubah ke /preview
+    const ucMatch = src.match(/id=([a-zA-Z0-9_-]+)/)
+    if (ucMatch && ucMatch[1]) {
+      iframeUrl = `https://drive.google.com/file/d/${ucMatch[1]}/preview`
+    } else {
+      iframeUrl = src.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview')
+    }
+  }
+
   return (
     <motion.div
       className="overlay image-viewer"
@@ -21,7 +35,19 @@ export default function ImageViewer({ src, onClose }) {
         <X size={20} />
       </button>
 
-      {loadFailed ? (
+      {isGoogleDrive ? (
+        <motion.iframe
+          src={iframeUrl}
+          className="image-viewer__iframe"
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.85, opacity: 0 }}
+          transition={{ type: 'spring', damping: 22, stiffness: 250 }}
+          onClick={e => e.stopPropagation()}
+          allow="autoplay"
+          title="Google Drive Preview"
+        />
+      ) : loadFailed ? (
         /* Error state — image blocked by CORS / hotlink protection */
         <motion.div
           className="image-viewer__error"

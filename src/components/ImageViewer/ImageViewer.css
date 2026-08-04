@@ -83,6 +83,16 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
 }
+
+.image-viewer__iframe {
+  width: 90vw;
+  max-width: 1000px;
+  height: 85vh;
+  border: none;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
+  background: var(--bg-card);
+}
 .image-viewer__close:hover {
   background: rgba(255, 255, 255, 0.2);
 }
