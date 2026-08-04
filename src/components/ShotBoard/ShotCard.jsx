@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Package, AlignLeft, Quote, Link2, ChevronDown, CheckCircle2,
-  RotateCcw, StickyNote, Image, Edit3
+  RotateCcw, StickyNote, Image, Video, Edit3
 } from 'lucide-react'
 import StatusBadge from './StatusBadge'
 import ImageViewer from '../ImageViewer/ImageViewer'
@@ -63,6 +63,17 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
 
   const isDone = shot.status === 'TAKE_DONE'
   const isRevisi = shot.status === 'REVISI'
+  const imageCount = shot.referenceImages?.length || 0
+  const videoCount = shot.referenceLinks?.length || 0
+  const hasReferences = imageCount + videoCount > 0
+  const equipmentSummary = shot.equipment?.length > 0
+    ? `${shot.equipment[0]}${shot.equipment.length > 1 ? ` +${shot.equipment.length - 1}` : ''}`
+    : ''
+  const compactMeta = [shot.shotType, equipmentSummary].filter(Boolean).join(' · ')
+  const referenceLabel = [
+    imageCount > 0 && `${imageCount} foto`,
+    videoCount > 0 && `${videoCount} video`
+  ].filter(Boolean).join(' · ')
 
   return (
     <>
@@ -81,10 +92,15 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
             </div>
             <div className="shot-card__title-group">
               <h3 className="shot-card__scene-label">{shot.sceneLabel}</h3>
-              <p className="shot-card__shot-type">{shot.shotType}{shot.angle ? ` · ${shot.angle}` : ''}</p>
+              <p className="shot-card__shot-type">{compactMeta || shot.angle || 'Detail shot belum diisi'}</p>
             </div>
           </div>
           <div className="shot-card__header-right">
+            {hasReferences && (
+              <span className="shot-card__reference-indicator" title={`Referensi: ${referenceLabel}`} aria-label={`Referensi tersedia: ${referenceLabel}`}>
+                <Link2 size={13} />
+              </span>
+            )}
             <StatusBadge status={shot.status} size="sm" />
             <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown size={16} color="var(--text-muted)" />
@@ -147,7 +163,7 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
                   <div className="shot-card__detail-row">
                     <div className="shot-card__detail-label">
                       <Image size={12} />
-                      Referensi Visual
+                      Foto Referensi Framing
                     </div>
                     <div className="shot-card__images">
                       {shot.referenceImages.map((img, i) => (
@@ -164,12 +180,12 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, i
                   </div>
                 )}
 
-                {/* Reference Links */}
+                {/* Reference Video Links */}
                 {shot.referenceLinks?.length > 0 && (
                   <div className="shot-card__detail-row">
                     <div className="shot-card__detail-label">
-                      <Link2 size={12} />
-                      Link Referensi
+                      <Video size={12} />
+                      Video Referensi
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {shot.referenceLinks.map((link, i) => (

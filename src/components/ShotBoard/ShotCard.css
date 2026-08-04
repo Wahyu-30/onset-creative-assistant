@@ -75,6 +75,19 @@
   flex-shrink: 0;
 }
 
+.shot-card__reference-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--accent-secondary);
+  background: var(--accent-primary-soft);
+  border: 1px solid var(--accent-primary-border);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
 .shot-card__scene-badge {
   width: 34px;
   height: 34px;

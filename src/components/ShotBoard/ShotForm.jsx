@@ -192,13 +192,13 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
             />
           </div>
 
-          {/* Reference Images */}
+          {/* Framing Reference Images */}
           <div className="form-group">
-            <label className="form-label">Foto Referensi (URL)</label>
+            <label className="form-label">Foto Referensi Framing (URL)</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <input
                 type="url"
-                placeholder="https://contoh.com/referensi.jpg"
+                placeholder="https://contoh.com/framing.jpg"
                 value={newImage}
                 onChange={e => setNewImage(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addImage())}
@@ -218,9 +218,9 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
             ))}
           </div>
 
-          {/* Reference Links */}
+          {/* Reference Video Links */}
           <div className="form-group">
-            <label className="form-label">Link Referensi</label>
+            <label className="form-label">Video Referensi (TikTok / Reels)</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <input
                 type="url"
