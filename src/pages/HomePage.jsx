@@ -8,7 +8,7 @@ import './HomePage.css'
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { activeProjects, archivedProjects, createProject, deleteProject, archiveProject } = useProjects()
+  const { activeProjects, archivedProjects, createProject, deleteProject, archiveProject, loading: projectsLoading } = useProjects()
   const [showForm, setShowForm] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
@@ -61,11 +61,39 @@ export default function HomePage() {
             <span className="home-section__count">{activeProjects.length}</span>
           </div>
 
-          {activeProjects.length === 0 ? (
+          {projectsLoading ? (
+            <div className="empty-state">
+              <p className="empty-state__title">Memuat Proyek...</p>
+            </div>
+          ) : activeProjects.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state__icon">📋</div>
               <p className="empty-state__title">Belum ada proyek</p>
               <p className="empty-state__desc">Tap tombol + untuk membuat proyek baru</p>
+              <button 
+                className="btn-primary" 
+                style={{ marginTop: 16 }}
+                onClick={async () => {
+                  const { SAMPLE_PROJECTS } = await import('../data/sampleData')
+                  const { shotsService } = await import('../services/shotsService')
+                  const { supabase } = await import('../services/supabaseClient')
+                  for (const proj of SAMPLE_PROJECTS) {
+                    const { shots, ...projData } = proj
+                    const newProj = await createProject(projData)
+                    if (shots && shots.length > 0) {
+                      const shotsToInsert = shots.map(s => ({
+                        ...s,
+                        project_id: newProj.id,
+                        updatedAt: new Date().toISOString()
+                      }))
+                      await shotsService.bulkInsertShots(shotsToInsert)
+                    }
+                  }
+                  window.location.reload()
+                }}
+              >
+                Isi Data Sample
+              </button>
             </div>
           ) : (
             <div className="project-list">

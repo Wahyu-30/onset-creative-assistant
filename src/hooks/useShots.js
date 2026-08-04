@@ -1,44 +1,105 @@
-import { v4 as uuidv4 } from '../utils/uuid'
+import { useState, useEffect } from 'react'
+import { shotsService } from '../services/shotsService'
+import { supabase } from '../services/supabaseClient'
 
-export function useShots(projectId, project, updateProject) {
-  const shots = project?.shots || []
+export function useShots(projectId) {
+  const [shots, setShots] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const updateShots = (newShots) => {
-    updateProject(projectId, { shots: newShots })
-  }
+  useEffect(() => {
+    if (!projectId) return
 
-  const addShot = (shotData) => {
-    const newShot = {
-      id: uuidv4(),
-      scene: Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1,
-      sceneLabel: `Scene ${Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1}`,
-      shotType: '',
-      angle: '',
-      equipment: [],
-      briefAction: '',
-      dialog: '',
-      referenceImages: [],
-      referenceLinks: [],
-      status: 'PENDING',
-      notes: '',
-      updatedAt: null,
-      ...shotData
+    fetchShots()
+
+    const channel = supabase
+      .channel(`public:shots:project_id=eq.${projectId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shots', filter: `project_id=eq.${projectId}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setShots(prev => {
+              // avoid duplicate if we inserted it locally
+              if (prev.find(s => s.id === payload.new.id)) return prev;
+              return [...prev, payload.new].sort((a, b) => a.scene - b.scene)
+            })
+          } else if (payload.eventType === 'UPDATE') {
+            setShots(prev => prev.map(s => s.id === payload.new.id ? payload.new : s))
+          } else if (payload.eventType === 'DELETE') {
+            setShots(prev => prev.filter(s => s.id !== payload.old.id))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
     }
-    updateShots([...shots, newShot])
-    return newShot
+  }, [projectId])
+
+  const fetchShots = async () => {
+    try {
+      setLoading(true)
+      const data = await shotsService.getShotsByProject(projectId)
+      setShots(data)
+    } catch (err) {
+      setError(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const updateShot = (shotId, updates) => {
-    const newShots = shots.map(s =>
-      s.id === shotId
-        ? { ...s, ...updates, updatedAt: new Date().toISOString() }
-        : s
-    )
-    updateShots(newShots)
+  const addShot = async (shotData) => {
+    try {
+      const nextScene = Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1
+      const newShotData = {
+        project_id: projectId,
+        scene: nextScene,
+        sceneLabel: `Scene ${nextScene}`,
+        shotType: '',
+        angle: '',
+        equipment: [],
+        briefAction: '',
+        dialog: '',
+        referenceImages: [],
+        referenceLinks: [],
+        status: 'PENDING',
+        notes: '',
+        updatedAt: new Date().toISOString(),
+        ...shotData
+      }
+      
+      const newShot = await shotsService.addShot(newShotData)
+      setShots(prev => {
+        if (prev.find(s => s.id === newShot.id)) return prev;
+        return [...prev, newShot]
+      })
+      return newShot
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  const deleteShot = (shotId) => {
-    updateShots(shots.filter(s => s.id !== shotId))
+  const updateShot = async (shotId, updates) => {
+    try {
+      // Optimistic update for UI feel
+      setShots(prev => prev.map(s => s.id === shotId ? { ...s, ...updates } : s))
+      await shotsService.updateShot(shotId, updates)
+    } catch (err) {
+      console.error(err)
+      fetchShots() // rollback on error
+    }
+  }
+
+  const deleteShot = async (shotId) => {
+    try {
+      setShots(prev => prev.filter(s => s.id !== shotId))
+      await shotsService.deleteShot(shotId)
+    } catch (err) {
+      console.error(err)
+      fetchShots() // rollback on error
+    }
   }
 
   const setStatus = (shotId, status) => {
@@ -71,6 +132,8 @@ export function useShots(projectId, project, updateProject) {
     updateShot,
     deleteShot,
     setStatus,
-    addNote
+    addNote,
+    loading,
+    error
   }
 }

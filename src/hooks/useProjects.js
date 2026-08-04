@@ -1,34 +1,59 @@
-import { useLocalStorage } from './useLocalStorage'
-import { SAMPLE_PROJECTS } from '../data/sampleData'
-import { v4 as uuidv4 } from '../utils/uuid'
+import { useState, useEffect } from 'react'
+import { projectsService } from '../services/projectsService'
 
 export function useProjects() {
-  const [projects, setProjects] = useLocalStorage('projects', SAMPLE_PROJECTS)
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const createProject = (projectData) => {
-    const newProject = {
-      id: uuidv4(),
-      ...projectData,
-      createdAt: new Date().toISOString().split('T')[0],
-      status: 'active',
-      shots: []
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async () => {
+    try {
+      setLoading(true)
+      const data = await projectsService.getAllProjects()
+      setProjects(data)
+    } catch (err) {
+      setError(err)
+    } finally {
+      setLoading(false)
     }
-    setProjects(prev => [newProject, ...prev])
-    return newProject
   }
 
-  const updateProject = (projectId, updates) => {
-    setProjects(prev =>
-      prev.map(p => p.id === projectId ? { ...p, ...updates } : p)
-    )
+  const createProject = async (projectData) => {
+    try {
+      const newProject = await projectsService.createProject(projectData)
+      setProjects(prev => [newProject, ...prev])
+      return newProject
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  const deleteProject = (projectId) => {
-    setProjects(prev => prev.filter(p => p.id !== projectId))
+  const updateProject = async (projectId, updates) => {
+    try {
+      const updated = await projectsService.updateProject(projectId, updates)
+      setProjects(prev =>
+        prev.map(p => p.id === projectId ? { ...p, ...updated } : p)
+      )
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  const archiveProject = (projectId) => {
-    updateProject(projectId, { status: 'archived' })
+  const deleteProject = async (projectId) => {
+    try {
+      await projectsService.deleteProject(projectId)
+      setProjects(prev => prev.filter(p => p.id !== projectId))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const archiveProject = async (projectId) => {
+    await updateProject(projectId, { status: 'archived' })
   }
 
   const getProject = (projectId) => {
@@ -46,6 +71,8 @@ export function useProjects() {
     updateProject,
     deleteProject,
     archiveProject,
-    getProject
+    getProject,
+    loading,
+    error
   }
 }

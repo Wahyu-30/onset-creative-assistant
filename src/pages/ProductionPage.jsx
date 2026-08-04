@@ -22,9 +22,9 @@ import './ProductionPage.css'
 export default function ProductionPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { getProject, updateProject } = useProjects()
+  const { getProject, updateProject, loading: projectsLoading } = useProjects()
   const project = getProject(projectId)
-  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, updateShot, deleteShot, setStatus, addNote } = useShots(projectId, project, updateProject)
+  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, updateShot, deleteShot, setStatus, addNote, loading: shotsLoading } = useShots(projectId)
 
   const [mode, setMode] = useState('tech') // 'tech' | 'talent'
   const [activeScene, setActiveScene] = useState(null)
@@ -52,6 +52,14 @@ export default function ProductionPage() {
     if (activeStatus !== 'ALL') result = result.filter(s => s.status === activeStatus)
     return result
   }, [shots, activeScene, activeStatus])
+
+  if (projectsLoading || shotsLoading) {
+    return (
+      <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Memuat data proyek...</div>
+      </div>
+    )
+  }
 
   if (!project) {
     return (
