@@ -10,8 +10,8 @@
 **On-Set Creative Assistant** adalah internal web app mobile-first untuk tim produksi video (Director, Videografer, Talent). Menggantikan kertas kerja fisik / Google Docs saat pengambilan gambar di lapangan.
 
 **Live URL**: https://onset-creative-assistant.vercel.app  
-**Stack**: Vite + React, Vanilla CSS, Framer Motion, React Router DOM  
-**Storage**: localStorage (Fase 1) → Google Sheets (Fase 2) → Firebase (Fase 3)
+**Stack**: Vite + React, Vanilla CSS, Framer Motion, React Router DOM, Supabase  
+**Storage**: ~~localStorage (Fase 1)~~ → **Supabase PostgreSQL + Real-time WebSocket (Fase 2 — AKTIF)**
 
 ---
 
@@ -22,6 +22,8 @@ onset-creative-assistant/
 ├── index.html                          ← Entry HTML, mobile viewport meta
 ├── package.json
 ├── vite.config.js
+├── vercel.json                         ← SPA routing fallback config
+├── .env.local                          ← Supabase credentials (JANGAN commit ke Git)
 └── src/
     ├── main.jsx                        ← ReactDOM root, BrowserRouter wrapper
     ├── App.jsx                         ← Route definitions (/ dan /production/:projectId)
@@ -33,16 +35,24 @@ onset-creative-assistant/
     ├── utils/
     │   └── uuid.js                     ← Simple UUID v4 generator (tanpa library)
     │
+    ├── services/                       ← [BARU - Fase 2] Layer komunikasi database
+    │   ├── supabaseClient.js           ← Inisialisasi Supabase client (baca dari .env)
+    │   ├── projectsService.js          ← CRUD untuk tabel `projects` di Supabase
+    │   └── shotsService.js             ← CRUD untuk tabel `shots` di Supabase
+    │
     ├── hooks/
-    │   ├── useLocalStorage.js          ← localStorage wrapper, prefix: onset_
-    │   ├── useProjects.js              ← CRUD proyek, uses useLocalStorage
-    │   └── useShots.js                 ← CRUD shots + progress calc, uses useProjects
+    │   ├── useLocalStorage.js          ← [TIDAK LAGI DIPAKAI] Legacy localStorage wrapper
+    │   ├── useProjects.js              ← CRUD proyek via Supabase (async)
+    │   └── useShots.js                 ← CRUD shots + real-time subscription + progress calc
     │
     ├── pages/
     │   ├── HomePage.jsx + .css         ← Daftar semua proyek (active & archived)
     │   └── ProductionPage.jsx + .css   ← Halaman produksi utama, orchestrates semua komponen
     │
     └── components/
+        ├── ErrorBoundary/
+        │   └── ErrorBoundary.jsx       ← React Error Boundary (mencegah black screen crash)
+        │
         ├── ProjectManager/
         │   └── ProjectForm.jsx         ← Modal form buat/edit proyek
         │
@@ -68,22 +78,68 @@ onset-creative-assistant/
 
 ---
 
-## 🧩 Arsitektur Data
+## 🗄️ Arsitektur Database (Fase 2)
 
-### Alur Data
+### Skema Tabel Supabase
+
+#### Tabel `projects`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | UUID PK | Auto-generated |
+| `name` | TEXT | Nama proyek |
+| `client` | TEXT | Nama klien |
+| `createdAt` | TEXT | Format YYYY-MM-DD |
+| `deadline` | TEXT | Format YYYY-MM-DD |
+| `status` | TEXT | `active` atau `archived` |
+| `targetAudience` | TEXT | Target penonton |
+| `concept` | TEXT | Konsep konten |
+| `styleGuide` | JSONB | `{notes, images[], links[]}` |
+
+#### Tabel `shots`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | UUID PK | Auto-generated |
+| `project_id` | UUID FK | References `projects(id)` ON DELETE CASCADE |
+| `scene` | INTEGER | Nomor scene |
+| `sceneLabel` | TEXT | Label tampilan `"Scene 1"` |
+| `shotType` | TEXT | `Close Up`, `Wide`, dll |
+| `angle` | TEXT | `Eye Level`, `Top Down`, dll |
+| `equipment` | TEXT[] | Array nama alat |
+| `briefAction` | TEXT | Deskripsi aksi |
+| `dialog` | TEXT | Naskah (bisa mengandung `<TAG>`) |
+| `referenceImages` | TEXT[] | Array URL gambar |
+| `referenceLinks` | TEXT[] | Array URL eksternal |
+| `status` | TEXT | `PENDING`, `TAKE_DONE`, `REVISI` |
+| `notes` | TEXT | Catatan lapangan |
+| `updatedAt` | TIMESTAMPTZ | Auto-updated |
+
+> **PENTING**: Semua nama kolom yang CamelCase (e.g. `createdAt`, `sceneLabel`) harus ditulis dengan tanda kutip ganda di SQL (`"createdAt"`) karena PostgreSQL case-sensitive dalam mode quoted identifier.
+
+### Alur Data (Fase 2)
 ```
-localStorage (onset_projects)
-    ↓
-useLocalStorage hook
-    ↓
-useProjects hook (CRUD project)
-    ↓
-useShots hook (CRUD shots + progress)
-    ↓
-Components (read/write via hooks)
+Supabase PostgreSQL (Cloud)
+    ↑↓ REST API / WebSocket
+Services Layer (projectsService.js, shotsService.js)
+    ↑↓ async calls
+Hooks (useProjects.js, useShots.js)
+    ↑↓ state + realtime subscription
+Components / Pages
 ```
 
-### Schema Project
+### Real-time Pattern
+`useShots.js` berlangganan (subscribe) ke channel Supabase:
+```js
+supabase.channel(`public:shots:project_id=eq.${projectId}`)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'shots', filter: `project_id=eq.${projectId}` }, handler)
+  .subscribe()
+```
+Ini memastikan perubahan `INSERT`, `UPDATE`, `DELETE` pada shots dibroadcast ke semua klien yang sedang membuka proyek yang sama.
+
+---
+
+## 🧩 Schema Data (untuk referensi komponen)
+
+### Schema Project (state di React)
 ```js
 {
   id: "uuid-string",
@@ -96,17 +152,19 @@ Components (read/write via hooks)
   concept: "string",
   styleGuide: {
     notes: "string",
-    images: [],                    // array URL string (Fase 2)
+    images: [],                    // array URL string
     links: []                      // array URL string
-  },
-  shots: [Shot]
+  }
+  // Catatan: field `shots` TIDAK ada di dalam object project
+  // Shots diambil terpisah via useShots(projectId)
 }
 ```
 
-### Schema Shot
+### Schema Shot (state di React)
 ```js
 {
   id: "uuid-string",
+  project_id: "uuid-string",       // FK ke projects
   scene: 1,                        // number (urutan scene)
   sceneLabel: "Scene 1",           // label yang tampil di UI
   shotType: "Close Up",
@@ -118,7 +176,7 @@ Components (read/write via hooks)
   referenceLinks: [],              // array URL
   status: "PENDING",               // "PENDING" | "TAKE_DONE" | "REVISI"
   notes: "string",                 // catatan lapangan
-  updatedAt: null                  // ISO datetime string atau null
+  updatedAt: "2026-08-05T..."      // ISO datetime string
 }
 ```
 
@@ -160,9 +218,10 @@ Jangan hardcode warna apapun di komponen. Selalu gunakan variable:
 2. **Dark mode permanen** — tidak ada toggle light mode, jangan tambahkan
 3. **Gunakan CSS variables** — jangan hardcode warna
 4. **Gunakan hooks yang ada** — `useProjects` dan `useShots` untuk semua operasi data
-5. **localStorage key prefix `onset_`** — jangan buat key baru tanpa prefix ini
-6. **Animasi via Framer Motion** — jangan pakai CSS animation untuk transisi komponen besar
-7. **Update PRD.md** di folder Desktop jika mengubah fitur atau struktur data
+5. **Animasi via Framer Motion** — jangan pakai CSS animation untuk transisi komponen besar
+6. **Update AGENTS.md & PRD.md** jika mengubah fitur atau struktur data
+7. **Operasi database via Services** — jangan panggil Supabase client langsung dari komponen/hook, selalu lewat `projectsService` atau `shotsService`
+8. **Optimistic UI** — update state lokal dulu sebelum menunggu konfirmasi dari Supabase untuk pengalaman yang mulus
 
 ### ❌ JANGAN lakukan:
 1. Jangan install TailwindCSS atau CSS framework lain
@@ -170,8 +229,9 @@ Jangan hardcode warna apapun di komponen. Selalu gunakan variable:
 3. Jangan buat state management global (Redux, Zustand, dll) — hooks sudah cukup
 4. Jangan ubah struktur data Shot atau Project tanpa update schema di dokumen ini
 5. Jangan tambahkan autentikasi — ini internal tool tanpa login
-6. Jangan pakai `any` di TypeScript (jika project dimigrasi ke TS)
-7. Jangan ubah nama `localStorage` keys yang sudah ada
+6. Jangan pakai `useLocalStorage` untuk data baru — sudah digantikan Supabase
+7. Jangan panggil Supabase client langsung dari komponen — selalu lewat services layer
+8. Jangan hardcode credentials Supabase di kode sumber — selalu baca dari `import.meta.env`
 
 ---
 
@@ -187,7 +247,7 @@ Jangan hardcode warna apapun di komponen. Selalu gunakan variable:
 
 ## 🔄 State Management
 
-State dikelola sepenuhnya via React hooks + localStorage. Tidak ada global state.
+State dikelola sepenuhnya via React hooks + Supabase. Tidak ada global state.
 
 ```
 ProductionPage (state utama)
@@ -198,32 +258,36 @@ ProductionPage (state utama)
 ├── showEditProject: boolean
 └── showProjectInfo: boolean
 
-useShots(projectId) → shots, progress stats, CRUD functions
-useProjects() → projects, CRUD functions
+useShots(projectId) → shots[], progress stats, CRUD functions, loading, error
+  └── Supabase real-time subscription (WebSocket)
+useProjects() → projects[], CRUD functions, loading, error
+  └── Supabase REST API
 ```
 
 ---
 
-## 🔜 Histori & Fase Pengembangan Berikutnya
+## 🔜 Histori & Fase Pengembangan
 
 ### ✅ Fase 1 (Selesai) — UI/UX & Core Fixes
-- **Referensi Visual & UX**: Indikator referensi (🔗/📷/🎬) di kartu collapsed, tap-to-zoom dengan `framer-motion`, dan perbaikan CSS clipping bug (`expandOverflow`).
+- **Referensi Visual & UX**: Indikator referensi (🔗/📷/🎬) di kartu collapsed, tap-to-zoom dengan `framer-motion`.
 - **Smart Image Fallback**: Menangani hotlink protection (Pinterest/IG) dengan merubah image yang `onError` menjadi tombol eksternal.
 - **Google Drive In-App Viewer**: Link Google Drive dikonversi menjadi `<iframe>` modal overlay secara otomatis agar kru tidak terlempar keluar dari web.
 - **Fitur Hapus**: Hapus shot dengan konfirmasi 2-tap (aman dari misclick).
 - **Stability**: Penambahan `vercel.json` untuk SPA routing fallback dan `ErrorBoundary` React untuk mencegah black screen jika terjadi JS crash.
 
-### Fase 2 — Google Sheets Integration
-- Buat `src/services/sheetsAPI.js` — proxy ke backend Node.js
-- Backend: `server/index.js` (Node.js + Express + Google APIs)
-- Jangan ubah hooks yang ada — tambahkan layer sync di atasnya
-- Env vars yang dibutuhkan: `GOOGLE_SERVICE_ACCOUNT_KEY`, `SPREADSHEET_ID`
+### ✅ Fase 2 (Selesai) — Supabase Real-time Sync
+- **Migrasi Database**: Data dipindahkan dari `localStorage` ke Supabase PostgreSQL.
+- **Tabel Terpisah**: `projects` dan `shots` di-normalize ke tabel terpisah untuk query yang lebih efisien.
+- **Services Layer**: Dibuat `src/services/` untuk memisahkan logika database dari UI.
+- **Real-time WebSocket**: `useShots` subscribe ke Supabase Channel sehingga semua perangkat sinkron instan.
+- **Optimistic Updates**: UI diperbarui seketika tanpa menunggu konfirmasi server.
+- **Loading States**: `HomePage` dan `ProductionPage` menampilkan loading state saat fetch awal.
+- **Sample Data Injector**: Tombol "Isi Data Sample" untuk mengisi database kosong sekali klik.
 
-### Fase 3 — Firebase Real-time Sync
-- Buat `src/services/realtimeSync.js`
-- Firebase package: `firebase`
-- Auto-scroll talent mengikuti shot aktif Director
-- Env vars: `VITE_FIREBASE_*`
+### 🔜 Fase 3 (Rencana)
+- **Google Sheets Import**: Import shot list dari template Excel/Sheets ke Supabase
+- **Ekspor PDF**: Generate Call Sheet / Shot List sebagai PDF
+- **Dashboard**: Ringkasan progress semua proyek dalam satu layar
 
 ---
 
@@ -239,7 +303,7 @@ npm run dev
 # Build untuk production
 npm run build
 
-# Deploy ke Vercel
+# Deploy ke Vercel (sudah auto-deploy via Git push)
 npx vercel --prod
 
 # Preview build lokal
@@ -256,19 +320,30 @@ npm run preview
   "react-dom": "^18",
   "react-router-dom": "^6",
   "framer-motion": "^11",
-  "lucide-react": "^0.400+"
+  "lucide-react": "^0.400+",
+  "@supabase/supabase-js": "^2"
 }
 ```
 
 ---
 
-## 🐛 Known Issues (Fase 1)
+## 🌐 Environment Variables
 
-1. **Upload foto referensi** belum tersedia — field `referenceImages` kosong, harus input URL manual
-2. **Data tidak sync antar device** — localStorage per browser (akan fix di Fase 3)
-3. **Drag & drop reorder shot** belum ada (akan tambah di Fase 2)
-4. **No offline cache** — meski data di localStorage, assets (JS/CSS) butuh internet jika belum di-cache browser
+| Variabel | Keterangan |
+|---|---|
+| `VITE_SUPABASE_URL` | URL Supabase project |
+| `VITE_SUPABASE_ANON_KEY` | Anon/Public key Supabase (aman diekspos ke browser) |
+
+File `.env.local` untuk development lokal, dan harus didaftarkan di **Vercel → Settings → Environment Variables** untuk production.
 
 ---
 
-*Last updated: Agustus 2026 | Fase 1 Complete*
+## 🐛 Known Issues
+
+1. **Upload foto referensi** belum tersedia — field `referenceImages` masih input URL manual
+2. **Jumlah shot di halaman utama** selalu 0/0 — karena shots diambil terpisah (by project_id) dan tidak di-embed di dalam object project untuk performa
+3. **Drag & drop reorder shot** belum ada (rencana Fase 3)
+
+---
+
+*Last updated: Agustus 2026 | Fase 1 ✅ | Fase 2 ✅ (Supabase Real-time)*

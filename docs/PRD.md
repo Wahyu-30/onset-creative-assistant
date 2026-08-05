@@ -1,6 +1,6 @@
 # PRD — On-Set Creative Assistant
 **Product Requirements Document**  
-Versi: 1.1 | Dibuat: Agustus 2026 | Diperbarui: Agustus 2026  
+Versi: 2.0 | Dibuat: Agustus 2026 | Diperbarui: Agustus 2026  
 Owner: Wahyu & Tim Creative
 
 ---
@@ -12,12 +12,13 @@ Tim creative (Director, Videografer, Talent) saat ini menggunakan dokumen fisik 
 - Talent harus mencari naskah di antara banyak informasi teknis
 - Catatan lapangan (notes) tidak tersimpan dengan rapi dan sering hilang
 - Kertas rentan kotor/rusak di lapangan
+- Data tidak sinkron antar device — setiap anggota tim punya data berbeda di browsernya
 
 ---
 
 ## 2. Solusi
 
-**On-Set Creative Assistant** — aplikasi web internal mobile-first yang menggantikan dokumen fisik dengan antarmuka interaktif. Diakses melalui browser di HP masing-masing anggota tim.
+**On-Set Creative Assistant** — aplikasi web internal mobile-first yang menggantikan dokumen fisik dengan antarmuka interaktif, tersinkronisasi secara real-time ke seluruh perangkat tim. Diakses melalui browser di HP masing-masing anggota tim tanpa perlu login.
 
 ---
 
@@ -39,25 +40,28 @@ Tim creative (Director, Videografer, Talent) saat ini menggunakan dokumen fisik 
 
 | Fase | Teknologi | Status |
 |---|---|---|
-| **Fase 1** | localStorage (browser) | ✅ Dibangun sekarang |
-| **Fase 2** | Google Sheets via Backend Proxy (Node.js + Service Account) | 🔜 Berikutnya |
-| **Fase 3** | Firebase Realtime Database | 🔜 Opsional |
+| **Fase 1** | localStorage (browser) | ✅ Selesai |
+| **Fase 2** | Supabase PostgreSQL + Real-time WebSocket | ✅ Selesai — AKTIF |
+| **Fase 3** | Google Sheets Import / PDF Export | 🔜 Rencana |
 
-**Alasan pilih Backend Proxy untuk Fase 2:**
-- Tim tidak perlu login Google Account → UX lebih simpel
-- Satu service account untuk seluruh tim
-- API key tersimpan aman di server, tidak terekspos ke browser
+**Alasan pilih Supabase untuk Fase 2:**
+- Real-time WebSocket native tanpa konfigurasi tambahan
+- Database PostgreSQL yang bisa di-query langsung dari browser (via anon key)
+- Tidak perlu backend server tambahan — lebih sederhana dari Backend Proxy
+- Gratis untuk skala internal tool tim kecil (free tier cukup)
+- Region Singapore tersedia untuk latensi rendah
 
-### 4.2 Real-time Sync Multi-Device (Fase 3)
+### 4.2 Real-time Sync Multi-Device
 
-- Menggunakan **Firebase Realtime Database**
-- Auto-scroll layar Talent mengikuti shot aktif Director
-- Indikator online presence tim
+- Menggunakan **Supabase Channels** (WebSocket `postgres_changes`)
+- Setiap perubahan status shot (TAKE_DONE, REVISI) otomatis broadcast ke semua perangkat yang membuka proyek yang sama
+- Tanpa perlu refresh halaman
+- Latensi < 500ms dalam kondisi jaringan normal
 
 ### 4.3 Input Data
 
 - ✅ Manual input via form di web app (buat proyek & shot langsung dari app)
-- ✅ Import dari Google Sheets yang sudah ada (Fase 2)
+- 🔜 Import dari Google Sheets yang sudah ada (Fase 3)
 
 ### 4.4 Autentikasi
 
@@ -78,12 +82,12 @@ Tim creative menaungi beberapa klien secara bersamaan, antara lain:
 - **Om Jack**
 - Dan klien-klien baru ke depannya
 
-Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek **satu per satu secara berurutan** (misal: selesaikan Grillme dulu, baru Project W). App mendukung penyimpanan banyak proyek sekaligus dengan kemampuan switch antar proyek.
+Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek **satu per satu secara berurutan**. App mendukung penyimpanan banyak proyek sekaligus dengan kemampuan switch antar proyek.
 
 **Workflow tim:**
 1. Manajer klien menyerahkan brief / lembar kertas kerja
 2. Tim creative input data ke app
-3. Di lokasi syuting, tim buka app di HP → tracking progress real-time
+3. Di lokasi syuting, tim buka app di HP → tracking progress real-time, sinkron ke semua HP
 4. Setelah selesai → proyek diarsipkan
 
 ---
@@ -93,7 +97,7 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 - **Mobile-First**: Dioptimalkan untuk layar HP (375px — 428px)
 - **Dark Mode Default**: Hemat baterai + nyaman di area pencahayaan ekstrem
 - **Zero Login**: Langsung buka di browser, tidak perlu autentikasi
-- **Offline Ready**: Data tersimpan di browser (localStorage), tetap bisa dipakai walau sinyal lemah
+- **Cloud-First**: Data tersimpan di Supabase cloud, dapat diakses dari perangkat manapun
 - **Speed**: Operasi utama (ubah status shot) harus bisa dilakukan dalam 1–2 tap
 - **Tidak perlu install**: Cukup akses via browser, tidak perlu di-install ke homescreen
 
@@ -107,11 +111,11 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 
 **Fitur:**
 - Daftar semua proyek aktif dengan progress bar mini
-- Buat proyek baru via form
+- Buat proyek baru via form (tersimpan ke Supabase)
 - Edit detail proyek
 - Arsipkan proyek selesai
 - Hapus proyek (dengan konfirmasi 2-tap)
-- Import dari Google Sheets (Fase 2)
+- Loading state saat mengambil data dari database
 
 **Data per Proyek:**
 - Nama proyek & klien
@@ -119,7 +123,6 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 - Target audience
 - Konsep/ide konten
 - Panduan gaya (catatan + link referensi)
-- Daftar shot
 
 ---
 
@@ -147,21 +150,20 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 | Equipment | Chips/tag per alat |
 | Brief Action | Deskripsi singkat gerakan |
 | Dialog/Naskah | Teks talent dengan badge instruksi |
-| Foto Referensi | Tap to zoom fullscreen. Mendukung smart-fallback (menjadi tombol link eksternal) jika hotlink diblokir (misal Pinterest/IG). Mendukung In-App Iframe Preview khusus untuk link share Google Drive. |
+| Foto Referensi | Tap to zoom fullscreen. Mendukung smart-fallback (menjadi tombol link eksternal) jika hotlink diblokir. Mendukung In-App Iframe Preview khusus untuk link share Google Drive. |
 | Link Referensi | Quick link ke TikTok/Reels/dokumen |
 | Hapus Shot | Tombol trash dengan konfirmasi 2-tap untuk menghapus shot. |
 | Quick Log | Catatan lapangan per shot |
 
 #### Tombol Status
-- **Take Done** — ubah status → TAKE DONE (hijau neon)
-- **Revisi** — tandai perlu diulang (merah)
+- **Take Done** — ubah status → TAKE DONE (hijau neon), sinkron real-time ke semua device
+- **Revisi** — tandai perlu diulang (merah), sinkron real-time ke semua device
 - Tap ulang untuk undo ke PENDING
 
 #### Quick Log / Catatan Lapangan
-- Input teks singkat per shot, tersimpan otomatis
+- Input teks singkat per shot, tersimpan otomatis ke Supabase
 - Contoh: *"Take 3 paling optimal"*, *"Lighting berlebih"*
 - Terlihat sebagai catatan kuning di shot card
-- Berguna sebagai referensi untuk editor saat post-production
 
 ---
 
@@ -197,6 +199,7 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 - Tap foto referensi → fullscreen overlay
 - Animasi spring masuk/keluar
 - Tap di luar gambar untuk tutup
+- Google Drive link → iframe modal in-app (tidak meninggalkan halaman)
 
 ---
 
@@ -204,13 +207,13 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 
 - Form lengkap per shot (scene, shot type, angle, equipment, dialog, dll)
 - Tambah dari halaman produksi
-- Reorder shot (drag & drop — Fase 2)
+- Tersimpan langsung ke Supabase & sinkron ke semua device
 
 ---
 
 ## 8. Struktur Data
 
-### Proyek (Project)
+### Proyek (Project) — Tabel Supabase `projects`
 ```json
 {
   "id": "uuid",
@@ -225,15 +228,15 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
     "notes": "untuk referensi angle ajaa",
     "images": [],
     "links": ["https://..."]
-  },
-  "shots": [...]
+  }
 }
 ```
 
-### Shot
+### Shot — Tabel Supabase `shots`
 ```json
 {
   "id": "uuid",
+  "project_id": "uuid",
   "scene": 1,
   "sceneLabel": "Scene 1",
   "shotType": "Close Up",
@@ -245,7 +248,7 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
   "referenceLinks": ["https://..."],
   "status": "PENDING",
   "notes": "Take 3 paling optimal",
-  "updatedAt": "2026-08-04T10:00:00Z"
+  "updatedAt": "2026-08-05T10:00:00Z"
 }
 ```
 
@@ -269,9 +272,9 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 | Animasi | Framer Motion |
 | Icons | Lucide React |
 | Styling | Vanilla CSS (dark mode, glassmorphism) |
-| Storage Fase 1 | localStorage (prefix: `onset_`) |
-| Storage Fase 2 | Google Sheets API v4 via Node.js proxy |
-| Real-time Fase 3 | Firebase Realtime Database |
+| Database | Supabase PostgreSQL |
+| Real-time | Supabase Channels (WebSocket `postgres_changes`) |
+| Deploy | Vercel |
 
 ### Struktur Folder
 
@@ -285,19 +288,24 @@ onset-creative-assistant/
 │   │   └── sampleData.js
 │   ├── utils/
 │   │   └── uuid.js
+│   ├── services/                  ← [BARU] Database layer
+│   │   ├── supabaseClient.js
+│   │   ├── projectsService.js
+│   │   └── shotsService.js
 │   ├── hooks/
-│   │   ├── useLocalStorage.js
-│   │   ├── useProjects.js
-│   │   └── useShots.js
+│   │   ├── useLocalStorage.js     ← [LEGACY, tidak dipakai]
+│   │   ├── useProjects.js         ← Supabase async
+│   │   └── useShots.js            ← Supabase async + realtime
 │   ├── pages/
 │   │   ├── HomePage.jsx           ← Daftar semua proyek
 │   │   └── ProductionPage.jsx     ← Halaman produksi utama
 │   └── components/
+│       ├── ErrorBoundary/
+│       │   └── ErrorBoundary.jsx
 │       ├── ProjectManager/
 │       │   └── ProjectForm.jsx
 │       ├── ShotBoard/
 │       │   ├── ShotCard.jsx
-│       │   ├── ShotCard.css
 │       │   ├── StatusBadge.jsx
 │       │   ├── QuickLog.jsx
 │       │   └── ShotForm.jsx
@@ -316,36 +324,41 @@ onset-creative-assistant/
 
 ## 10. Fase Pengembangan
 
-### ✅ Fase 1 — Core App (SEKARANG)
+### ✅ Fase 1 — Core App & UI/UX (Selesai)
 | Item | Status |
 |---|---|
 | Global CSS design system | ✅ Selesai |
-| Data layer (localStorage hooks) | ✅ Selesai |
 | Sample data Project W & Grillme | ✅ Selesai |
 | HomePage — daftar proyek | ✅ Selesai |
 | ProjectForm — buat/edit proyek | ✅ Selesai |
-| StatusBadge | ✅ Selesai |
 | ShotCard (expand/collapse, status, log) | ✅ Selesai |
 | QuickLog — catatan lapangan | ✅ Selesai |
 | ImageViewer — fullscreen foto | ✅ Selesai |
 | ModeToggle — Tech ↔ Talent | ✅ Selesai |
-| ModeToggle CSS | 🔄 In Progress |
-| FilterBar — filter scene & status | 🔄 In Progress |
-| ProductionProgress — progress bar | 🔄 In Progress |
-| TalentView / ScriptView | 🔄 In Progress |
-| ShotForm — tambah shot baru | 🔄 In Progress |
-| ProductionPage — halaman utama produksi | 🔄 In Progress |
+| FilterBar — filter scene & status | ✅ Selesai |
+| ProductionProgress — progress bar | ✅ Selesai |
+| TalentView / ScriptView | ✅ Selesai |
+| ShotForm — tambah/edit shot | ✅ Selesai |
+| ProductionPage — halaman utama produksi | ✅ Selesai |
+| Error Boundary & Vercel SPA routing | ✅ Selesai |
+| Smart image fallback & Drive iframe | ✅ Selesai |
+| Delete shot (konfirmasi 2-tap) | ✅ Selesai |
 
-### 🔜 Fase 2 — Google Sheets Integration
-- Backend Node.js proxy server
-- Service account Google
-- Import & sync shot list ke/dari Sheets
-- Update status & notes otomatis ke Sheets
+### ✅ Fase 2 — Supabase Real-time (Selesai)
+| Item | Status |
+|---|---|
+| Setup Supabase project & tabel | ✅ Selesai |
+| Services layer (projectsService, shotsService) | ✅ Selesai |
+| Refactor `useProjects` ke Supabase async | ✅ Selesai |
+| Refactor `useShots` ke Supabase + realtime subscription | ✅ Selesai |
+| Loading states di HomePage & ProductionPage | ✅ Selesai |
+| Tombol injeksi data sampel | ✅ Selesai |
+| Deploy ke Vercel dengan env vars Supabase | ✅ Selesai |
 
-### 🔜 Fase 3 — Real-time Multi-Device
-- Firebase Realtime Database setup
-- Auto-scroll Talent mengikuti shot aktif Director
-- Presence indicator (siapa online)
+### 🔜 Fase 3 — Extended Features (Rencana)
+- Google Sheets Import (import shot list dari template ke Supabase)
+- Ekspor PDF Call Sheet
+- Dashboard analitik multi-proyek
 
 ---
 
@@ -356,7 +369,9 @@ onset-creative-assistant/
 | Dark mode default, tidak bisa dimatikan | Kondisi lapangan: luar ruangan / studio dengan pencahayaan khusus |
 | Tombol Take Done besar | Kecepatan 1-tap di lapangan tanpa perlu zoom |
 | No login | Internal tool, tim sudah saling percaya |
-| localStorage dulu | Tidak bergantung internet, langsung pakai hari ini |
+| Supabase (bukan Firebase) | Real-time native, gratis untuk skala tim kecil, region Singapore |
+| Tabel shots & projects terpisah | Normalisasi database untuk performa query yang lebih baik |
+| Optimistic UI updates | Pengalaman terasa instan meski menunggu konfirmasi server |
 | Mode toggle di header | Switching cepat antar Director dan Talent |
 | Badge ekspresi berwarna | Talent perlu mengenali instruksi dari jarak baca |
 | Arsipkan bukan hapus | Riwayat kerja perlu disimpan untuk referensi |
@@ -369,12 +384,11 @@ onset-creative-assistant/
 1. **Mobile-first always** — semua komponen didesain untuk layar 375px terlebih dahulu
 2. **Dark mode permanen** — tidak ada light mode toggle
 3. **Jangan ubah struktur data** tanpa update PRD ini
-4. **localStorage key prefix** — gunakan `onset_` untuk semua key
+4. **Selalu lewat Services Layer** — panggil Supabase via `projectsService` atau `shotsService`
 5. **Komponen harus reusable** — ShotCard tidak boleh ada logika spesifik per proyek
 6. **Animasi ringan** — gunakan framer-motion, hindari animasi berat di HP lama
-7. **Offline-first** — app berjalan tanpa internet (kecuali fitur Fase 2/3)
-8. **Fase terpisah** — kode Fase 1 tidak boleh bergantung Fase 2/3
-9. **Semua file project** — disimpan di folder Desktop: `HAI ON SET CREATIVE ASSISTANT/onset-creative-assistant/`
+7. **Jangan simpan credentials di kode sumber** — selalu baca dari `import.meta.env`
+8. **Fase terpisah** — jangan buat dependensi antar fase yang belum dibangun
 
 ---
 
@@ -383,4 +397,5 @@ onset-creative-assistant/
 | Versi | Tanggal | Perubahan |
 |---|---|---|
 | 1.0 | Agustus 2026 | Dokumen awal dibuat |
-| 1.1 | Agustus 2026 | Keputusan final dikonfirmasi: localStorage Fase 1, Backend Proxy Fase 2, Firebase Fase 3. Multi-proyek (Grillme, Project W, Om Jack). No login, no PWA install. Fase pengembangan dilengkapi. Aturan developer ditambahkan. |
+| 1.1 | Agustus 2026 | Keputusan final dikonfirmasi: localStorage Fase 1, Backend Proxy Fase 2, Firebase Fase 3. Multi-proyek. No login. |
+| 2.0 | Agustus 2026 | **Fase 2 Selesai**: Migrasi ke Supabase PostgreSQL + Real-time WebSocket. Rencana Fase 2 (Google Sheets) digantikan oleh Supabase yang lebih sederhana dan lebih powerful. Semua item Fase 2 baru ditandai selesai. |

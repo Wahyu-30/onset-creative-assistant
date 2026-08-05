@@ -1,8 +1,10 @@
 # On-Set Creative Assistant
 
-![Version](https://img.shields.io/badge/version-1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0-blue.svg)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
 ![Platform](https://img.shields.io/badge/platform-Mobile_First-purple.svg)
+![Database](https://img.shields.io/badge/database-Supabase-3FCF8E.svg)
+![Realtime](https://img.shields.io/badge/realtime-WebSocket-orange.svg)
 
 Aplikasi web internal (Mobile-First) yang dirancang khusus untuk tim produksi video (Director, Videografer, dan Talent) untuk menggantikan dokumen fisik/kertas kerja di lokasi syuting.
 
@@ -16,41 +18,47 @@ Di lapangan, tim creative seringkali kerepotan mengatur kertas kerja fisik (atau
 - Talent bingung membaca naskah karena tercampur instruksi teknis kamera.
 - Director kesulitan memantau progress keseluruhan *shot* yang sudah/belum diambil.
 - Kertas rentan kotor, hilang, atau urutannya berantakan.
+- Data tidak sinkron antar device — hanya tersimpan di satu browser.
 
-**Solusi:** Aplikasi web ini memberikan antarmuka interaktif yang disesuaikan untuk peran masing-masing: **Tech View** untuk videografer/director (detail alat, sudut pandang kamera, status take) dan **Talent View** untuk naskah yang sangat bersih dan mudah dibaca dari jarak jauh.
+**Solusi:** Aplikasi web ini memberikan antarmuka interaktif yang disesuaikan untuk peran masing-masing: **Tech View** untuk videografer/director (detail alat, sudut pandang kamera, status take) dan **Talent View** untuk naskah yang sangat bersih dan mudah dibaca dari jarak jauh. Semua data disinkronisasi secara **real-time** ke seluruh perangkat tim via Supabase.
 
 ---
 
 ## ✨ Fitur Utama
 
 - **🎬 Multi-Project Management**: Kelola berbagai project (seperti Grillme, Project W, dll) dalam satu aplikasi.
+- **⚡ Real-time Multi-Device Sync**: Perubahan status shot (TAKE_DONE, REVISI) otomatis sinkron ke semua HP/Laptop tim dalam hitungan milidetik via Supabase WebSocket.
 - **🔄 Tech & Talent Mode Toggle**:
   - **Tech View**: Menampilkan detail lengkap (scene, equipment, angle, shot type, referensi, quick log, status).
   - **Talent View**: Mode naskah bersih, font besar, menyembunyikan detail teknis, dilengkapi dengan badge instruksi warna-warni (misal: `<EKSPRESI KAGET>`, `<NADA BICARA CEPAT>`).
-- **📊 Real-time Progress Tracking**: Progress bar visual yang menghitung persentase shot yang *Done*, *Pending*, atau butuh *Revisi*.
+- **📊 Progress Tracking**: Progress bar visual yang menghitung persentase shot yang *Done*, *Pending*, atau butuh *Revisi*.
 - **🌗 Dark Mode Premium**: UI didesain gelap secara default untuk visibilitas optimal di kondisi studio maupun *outdoor*, serta menghemat baterai HP.
 - **📱 Mobile-First Design**: Didesain khusus untuk layar *smartphone* (375px+).
 - **📝 Quick Log**: Fitur catatan lapangan super cepat per shot (berguna untuk *post-production*).
-- **🚀 Zero Login**: Tidak perlu autentikasi. Sangat cepat diakses oleh tim.
+- **🚀 Zero Login**: Tidak perlu autentikasi. Sangat cepat diakses oleh seluruh tim.
+- **☁️ Cloud Database**: Data tersimpan di Supabase PostgreSQL, tidak hilang meski browser di-clear.
 
 ---
 
-## 🛠️ Tech Stack (Fase 1)
+## 🛠️ Tech Stack
 
-- **Framework**: [React 18](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-- **Routing**: [React Router v6](https://reactrouter.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Styling**: Vanilla CSS (CSS Variables untuk Design System)
-- **Data Storage**: LocalStorage API browser (prefix `onset_`)
+| Layer | Teknologi |
+|---|---|
+| **Framework** | [React 18](https://reactjs.org/) + [Vite](https://vitejs.dev/) |
+| **Routing** | [React Router v6](https://reactrouter.com/) |
+| **Animasi** | [Framer Motion](https://www.framer.com/motion/) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
+| **Styling** | Vanilla CSS (CSS Variables untuk Design System) |
+| **Database** | [Supabase](https://supabase.com/) (PostgreSQL + Real-time WebSocket) |
+| **Deploy** | [Vercel](https://vercel.com/) |
 
 ---
 
 ## 🚀 Cara Menjalankan secara Lokal
 
-1. **Clone repository ini** (jika ada di Git):
+1. **Clone repository ini**:
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/Wahyu-30/onset-creative-assistant.git
    cd onset-creative-assistant
    ```
 
@@ -59,12 +67,20 @@ Di lapangan, tim creative seringkali kerepotan mengatur kertas kerja fisik (atau
    npm install
    ```
 
-3. **Jalankan Development Server**:
+3. **Buat file `.env.local`** di root project dan isi dengan:
+   ```env
+   VITE_SUPABASE_URL=https://rirkpkkbizsvastturjg.supabase.co
+   VITE_SUPABASE_ANON_KEY=sb_publishable_4PjfAc3Xz5osFApqU9mHGg_mxyTXqOb
+   ```
+
+4. **Jalankan Development Server**:
    ```bash
    npm run dev
    ```
 
-4. Buka browser di **[http://localhost:5173/](http://localhost:5173/)**.
+5. Buka browser di **[http://localhost:5173/](http://localhost:5173/)**.
+
+> **Catatan**: Saat database Supabase masih kosong (pertama kali), akan muncul tombol **"Isi Data Sample"** di halaman utama untuk mengisi data contoh secara otomatis.
 
 ---
 
@@ -77,17 +93,23 @@ File `AGENTS.md` berisi detail lengkap mengenai arsitektur, struktur data, CSS v
 
 ## 🛣️ Roadmap Fase Pengembangan
 
-### ✅ Fase 1 (Current)
+### ✅ Fase 1 (Selesai) — UI/UX Stabilization
 - Aplikasi inti selesai dibangun (Mobile-first, Dark mode).
-- Penyimpanan via LocalStorage.
-- Mode Tech ↔ Talent.
-- Filter, progress bar, edit form.
+- Mode Tech ↔ Talent, Filter, Progress Bar, Edit Form.
+- Error Boundary & SPA routing fallback.
+- Smart image fallback & Google Drive in-app iframe preview.
 
-### 🔜 Fase 2
-- **Integrasi Google Sheets**: Menyimpan dan memuat data langsung ke/dari Google Sheets menggunakan backend proxy Node.js (untuk keperluan pelaporan ke tim manajemen klien).
+### ✅ Fase 2 (Selesai) — Supabase Real-time Database
+- Migrasi dari `localStorage` ke Supabase PostgreSQL cloud.
+- Real-time WebSocket sync antar semua perangkat (HP, Laptop, Tablet).
+- Tabel `projects` dan `shots` terpisah untuk performa optimal.
+- Optimistic UI updates untuk pengalaman pengguna yang mulus.
+- Injeksi data sampel satu-klik via tombol "Isi Data Sample".
 
-### 🔜 Fase 3
-- **Firebase Realtime Sync**: Sinkronisasi instan antar *device* di lokasi syuting. Layar Talent dapat otomatis bergulir mengikuti scene yang sedang dibuka oleh Director.
+### 🔜 Fase 3 (Rencana)
+- **Google Sheets Import**: Import shot list dari template Excel/Sheets ke Supabase.
+- **Ekspor PDF Call Sheet**: Cetak atau simpan halaman produksi sebagai PDF.
+- **Dashboard Analitik**: Pantau progress seluruh proyek dalam satu layar ringkasan.
 
 ---
 
