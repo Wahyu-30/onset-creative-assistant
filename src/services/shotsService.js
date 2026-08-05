@@ -7,6 +7,7 @@ export const shotsService = {
       .select('*')
       .eq('project_id', projectId)
       .order('scene', { ascending: true })
+      .order('updatedAt', { ascending: true })
     
     if (error) {
       console.error('Error fetching shots:', error)
@@ -69,11 +70,11 @@ export const shotsService = {
     return data || []
   },
 
-  // Reorder: update scene number sebuah shot
-  async reorderShot(id, newScene) {
+  // Reorder: update scene number and updatedAt to swap perfectly
+  async reorderShot(id, newScene, newUpdatedAt) {
     const { error } = await supabase
       .from('shots')
-      .update({ scene: newScene, updatedAt: new Date().toISOString() })
+      .update({ scene: newScene, updatedAt: newUpdatedAt })
       .eq('id', id)
     if (error) throw error
   },

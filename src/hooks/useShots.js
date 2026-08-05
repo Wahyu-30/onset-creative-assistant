@@ -110,9 +110,12 @@ export function useShots(projectId) {
     updateShot(shotId, { notes })
   }
 
-  // Geser shot ke atas atau bawah (swap scene number)
+  // Geser shot ke atas atau bawah (swap scene number & updatedAt)
   const moveShot = async (shotId, direction) => {
-    const sorted = [...shots].sort((a, b) => a.scene - b.scene)
+    const sorted = [...shots].sort((a, b) => {
+      if (a.scene !== b.scene) return a.scene - b.scene
+      return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+    })
     const idx = sorted.findIndex(s => s.id === shotId)
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1
     if (swapIdx < 0 || swapIdx >= sorted.length) return
@@ -120,18 +123,19 @@ export function useShots(projectId) {
     const a = sorted[idx]
     const b = sorted[swapIdx]
     const tempScene = a.scene
+    const tempUpdatedAt = a.updatedAt
 
     // Optimistic update
     setShots(prev => prev.map(s => {
-      if (s.id === a.id) return { ...s, scene: b.scene }
-      if (s.id === b.id) return { ...s, scene: tempScene }
+      if (s.id === a.id) return { ...s, scene: b.scene, updatedAt: b.updatedAt }
+      if (s.id === b.id) return { ...s, scene: tempScene, updatedAt: tempUpdatedAt }
       return s
     }))
 
     try {
       await Promise.all([
-        shotsService.reorderShot(a.id, b.scene),
-        shotsService.reorderShot(b.id, tempScene)
+        shotsService.reorderShot(a.id, b.scene, b.updatedAt),
+        shotsService.reorderShot(b.id, tempScene, tempUpdatedAt)
       ])
     } catch (err) {
       console.error(err)
