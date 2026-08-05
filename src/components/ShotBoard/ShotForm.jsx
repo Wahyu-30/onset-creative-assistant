@@ -8,13 +8,14 @@ const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Medium Close Up', 'Close Up', '
 const ANGLES = ['Eye Level', 'Low Angle', 'High Angle', 'Top Down', 'Top Down / Flatlay', 'Side Angle', 'Dutch Angle', 'Panning Orbit']
 const EQUIPMENT_OPTIONS = ['Gimbal', 'Tripod', 'Lighting A', 'Lighting B', 'Lighting C', 'Mic Wireless (Clip-on)', 'Macro Lens', 'Reflector', 'Diffuser', 'Slider']
 
-export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onClose }) {
+export default function ShotForm({ shots, editShot, targetScene, onAddShot, onUpdateShot, onClose }) {
   const isEdit = !!editShot
   const nextScene = Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1
+  const defaultScene = targetScene || nextScene
 
   const [form, setForm] = useState({
-    scene: editShot?.scene || nextScene,
-    sceneLabel: editShot?.sceneLabel || `Scene ${nextScene}`,
+    scene: editShot?.scene || defaultScene,
+    sceneLabel: editShot?.sceneLabel || `Scene ${defaultScene}`,
     shotType: editShot?.shotType || '',
     angle: editShot?.angle || '',
     equipment: editShot?.equipment || [],
@@ -158,18 +159,21 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
             />
           </div>
 
-          {/* Shot Type */}
+          {/* Shot Type (Combobox) */}
           <div className="form-group">
             <label className="form-label">Jenis Shot</label>
-            <div className="shot-form__chips">
+            <input
+              list="shot-types"
+              type="text"
+              value={form.shotType}
+              onChange={e => update('shotType', e.target.value)}
+              placeholder="Pilih atau ketik jenis shot..."
+            />
+            <datalist id="shot-types">
               {SHOT_TYPES.map(t => (
-                <button
-                  key={t} type="button"
-                  className={`shot-form__chip ${form.shotType === t ? 'active' : ''}`}
-                  onClick={() => update('shotType', form.shotType === t ? '' : t)}
-                >{t}</button>
+                <option key={t} value={t} />
               ))}
-            </div>
+            </datalist>
           </div>
 
           {/* Angle */}

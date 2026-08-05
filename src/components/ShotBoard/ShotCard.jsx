@@ -60,7 +60,7 @@ function RefImage({ img, index, onClick }) {
   )
 }
 
-export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast, index }) {
+export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast, index, isMultiShot }) {
   const [expanded, setExpanded] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
   const [showLog, setShowLog] = useState(false)
@@ -137,13 +137,13 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.04, duration: 0.3 }}
-        className={`shot-card ${isDone ? 'shot-card--done' : ''} ${isRevisi ? 'shot-card--revisi' : ''}`}
+        className={`shot-card ${isDone ? 'shot-card--done' : ''} ${isRevisi ? 'shot-card--revisi' : ''} ${isMultiShot ? 'shot-card--multi' : ''}`}
       >
         {/* Card Header */}
         <div className="shot-card__header" onClick={() => setExpanded(!expanded)}>
           <div className="shot-card__header-left">
             <div className="shot-card__scene-badge">
-              <span className="shot-card__scene-num">{shot.scene}</span>
+              <span className="shot-card__scene-num">{isMultiShot ? `#${shot.shotNumber || 1}` : shot.scene}</span>
             </div>
             <div className="shot-card__title-group">
               <h3 className="shot-card__scene-label">{shot.sceneLabel}</h3>

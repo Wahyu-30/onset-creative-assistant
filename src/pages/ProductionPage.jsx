@@ -14,6 +14,7 @@ import ProjectForm from '../components/ProjectManager/ProjectForm'
 import KertasKerja from '../components/ProjectManager/KertasKerja'
 import ImportModal from '../components/ShotBoard/ImportModal'
 import ImageViewer from '../components/ImageViewer/ImageViewer'
+import SceneGroup from '../components/ShotBoard/SceneGroup'
 import '../components/ShotBoard/ShotCard.css'
 import '../components/ShotBoard/QuickLog.css'
 import '../components/ShotBoard/ShotForm.css'
@@ -38,8 +39,10 @@ export default function ProductionPage() {
   const [showImportModal, setShowImportModal] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
+  const [targetScene, setTargetScene] = useState(null)
 
-  const openNewShotForm = () => {
+  const openNewShotForm = (sceneNum = null) => {
+    setTargetScene(sceneNum)
     setEditingShot(null)
     setShowShotForm(true)
   }
@@ -309,7 +312,7 @@ export default function ProductionPage() {
                 onStatusChange={setActiveStatus}
               />
 
-              {/* Shot Cards */}
+              {/* Shot Cards Grouped By Scene */}
               <div className="prod-shot-list">
                 <AnimatePresence>
                   {filteredShots.length === 0 ? (
@@ -329,22 +332,37 @@ export default function ProductionPage() {
                       </p>
                     </motion.div>
                   ) : (
-                    filteredShots.map((shot, i) => (
-                      <ShotCard
-                        key={shot.id}
-                        shot={shot}
-                        index={i}
-                        totalShots={filteredShots.length}
-                        onStatusChange={setStatus}
-                        onNoteChange={addNote}
-                        onEdit={openEditShotForm}
-                        onDelete={deleteShot}
-                        onMoveUp={() => moveShot(shot.id, 'up')}
-                        onMoveDown={() => moveShot(shot.id, 'down')}
-                        isFirst={i === 0}
-                        isLast={i === filteredShots.length - 1}
-                      />
-                    ))
+                    (() => {
+                      // Group shots by scene
+                      const grouped = filteredShots.reduce((acc, shot) => {
+                        if (!acc[shot.scene]) acc[shot.scene] = [];
+                        acc[shot.scene].push(shot);
+                        return acc;
+                      }, {});
+                      
+                      // Sort scenes numerically
+                      const sortedScenes = Object.keys(grouped).map(Number).sort((a, b) => a - b);
+                      
+                      return sortedScenes.map(sceneNum => (
+                        <SceneGroup
+                          key={`scene-${sceneNum}`}
+                          scene={sceneNum}
+                          shots={grouped[sceneNum]}
+                          onAddShot={(s) => {
+                            // Buka form shot dengan pre-filled scene
+                            // openNewShotForm perlu dimodifikasi jika mau menerima argumen
+                            // Kita set localStorage atau custom state
+                            openNewShotForm(s);
+                          }}
+                          onStatusChange={setStatus}
+                          onNoteChange={addNote}
+                          onEdit={openEditShotForm}
+                          onDelete={deleteShot}
+                          onMoveUp={(id) => moveShot(id, 'up')}
+                          onMoveDown={(id) => moveShot(id, 'down')}
+                        />
+                      ));
+                    })()
                   )}
                 </AnimatePresence>
 
@@ -353,7 +371,7 @@ export default function ProductionPage() {
                   <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                     <motion.button
                       className="prod-add-shot-btn"
-                      onClick={openNewShotForm}
+                      onClick={() => openNewShotForm()}
                       whileTap={{ scale: 0.96 }}
                       style={{ flex: 1, margin: 0 }}
                     >
@@ -412,9 +430,10 @@ export default function ProductionPage() {
           <ShotForm
             shots={shots}
             editShot={editingShot}
+            targetScene={targetScene}
             onAddShot={addShot}
             onUpdateShot={updateShot}
-            onClose={() => { setShowShotForm(false); setEditingShot(null) }}
+            onClose={() => { setShowShotForm(false); setEditingShot(null); setTargetScene(null) }}
           />
         )}
         {showEditProject && (

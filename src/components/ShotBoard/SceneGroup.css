@@ -1,0 +1,122 @@
+.scene-group {
+  margin-bottom: 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.scene-group--done {
+  border-color: var(--success);
+  opacity: 0.8;
+}
+
+.scene-group__header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.scene-group__header:hover {
+  background: var(--bg-elevated);
+}
+
+.scene-group__header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scene-group__badge {
+  background: var(--accent-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.scene-group__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.scene-group__count {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.scene-group__header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.scene-group__add-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scene-group__add-btn:hover {
+  background: var(--accent-primary-soft);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary-border);
+}
+
+.scene-group__content {
+  background: var(--bg-secondary);
+}
+
+.scene-group__shots {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Modifier untuk ShotCard di dalam SceneGroup */
+.shot-card--multi {
+  margin-bottom: 0 !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-color);
+}
+
+.shot-card--multi:hover {
+  border-color: var(--text-muted);
+}
+
+.shot-card--multi .shot-card__scene-badge {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.shot-card--multi .shot-card__scene-label {
+  display: none; /* Sembunyikan label scene karena sudah ada di header */
+}
+
+.shot-card--multi .shot-card__shot-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}

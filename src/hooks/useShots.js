@@ -25,6 +25,7 @@ export function useShots(projectId) {
               const newArr = [...prev, payload.new]
               return newArr.sort((a, b) => {
                 if (a.scene !== b.scene) return a.scene - b.scene
+                if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
                 return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
               })
             })
@@ -33,6 +34,7 @@ export function useShots(projectId) {
               const mapped = prev.map(s => s.id === payload.new.id ? payload.new : s)
               return mapped.sort((a, b) => {
                 if (a.scene !== b.scene) return a.scene - b.scene
+                if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
                 return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
               })
             })
@@ -62,11 +64,16 @@ export function useShots(projectId) {
 
   const addShot = async (shotData) => {
     try {
-      const nextScene = Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1
+      // Jika shotData.scene ada, berarti user menambahkan shot ke scene yang sudah ada
+      const targetScene = shotData.scene || (Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1)
+      const existingShotsInScene = shots.filter(s => s.scene === targetScene)
+      const nextShotNumber = Math.max(0, ...existingShotsInScene.map(s => s.shotNumber || 1)) + (existingShotsInScene.length > 0 ? 1 : 0) || 1
+
       const newShotData = {
         project_id: projectId,
-        scene: nextScene,
-        sceneLabel: `Scene ${nextScene}`,
+        scene: targetScene,
+        shotNumber: nextShotNumber,
+        sceneLabel: shotData.sceneLabel || `Scene ${targetScene}`,
         shotType: '',
         angle: '',
         equipment: [],
@@ -86,6 +93,7 @@ export function useShots(projectId) {
         const newArr = [...prev, newShot]
         return newArr.sort((a, b) => {
           if (a.scene !== b.scene) return a.scene - b.scene
+          if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
           return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
         })
       })
@@ -99,12 +107,22 @@ export function useShots(projectId) {
     try {
       const nextScene = Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1
       let currentScene = nextScene
+      
+      const sceneCounters = {}
 
       const newShotsData = shotsArray.map((shot, index) => {
         const sceneNum = shot.scene ? Number(shot.scene) : (currentScene + index)
+        if (!sceneCounters[sceneNum]) {
+          // Find max existing shotNumber for this scene if any
+          const existingInScene = shots.filter(s => s.scene === sceneNum)
+          sceneCounters[sceneNum] = Math.max(0, ...existingInScene.map(s => s.shotNumber || 1))
+        }
+        sceneCounters[sceneNum] += 1
+
         return {
           project_id: projectId,
           scene: sceneNum,
+          shotNumber: sceneCounters[sceneNum],
           sceneLabel: shot.sceneLabel || `Scene ${sceneNum}`,
           shotType: shot.shotType || '',
           angle: shot.angle || '',
@@ -134,6 +152,7 @@ export function useShots(projectId) {
         const mapped = prev.map(s => s.id === shotId ? { ...s, ...updates } : s)
         return mapped.sort((a, b) => {
           if (a.scene !== b.scene) return a.scene - b.scene
+          if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
           return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
         })
       })
@@ -166,6 +185,7 @@ export function useShots(projectId) {
   const moveShot = async (shotId, direction) => {
     const sorted = [...shots].sort((a, b) => {
       if (a.scene !== b.scene) return a.scene - b.scene
+      if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
       return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
     })
     const idx = sorted.findIndex(s => s.id === shotId)
@@ -186,6 +206,7 @@ export function useShots(projectId) {
       })
       return mapped.sort((a, b) => {
         if (a.scene !== b.scene) return a.scene - b.scene
+        if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
         return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
       })
     })
