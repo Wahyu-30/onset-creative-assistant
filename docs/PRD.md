@@ -136,15 +136,18 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
 - Tampilkan ringkasan: PENDING / DONE / REVISI count
 
 #### Filter & Navigasi
-- Filter by Scene (pill tabs: Scene 1, 2, 3...)
+- Filter by Scene (pill tabs: All, S1, S2, S3...)
 - Filter by Status (PENDING / DONE / REVISI / Semua)
 - Kombinasi filter dibolehkan
 
-#### Shot Card (per shot)
+#### Scene Grouping & Shot Card
+- **Multi-Shot per Scene**: Shot dikelompokkan secara otomatis berdasarkan nomor Scene (`SceneGroup`).
+- Terdapat fungsi reorder (geser atas/bawah) antar-shot di dalam Scene maupun beda Scene.
+- Penomoran shot berurutan secara otomatis berdasarkan urutan posisi visual (#1, #2, dst).
 
 | Field | Detail |
 |---|---|
-| Scene & Shot ID | Nomor scene + label |
+| Scene & Shot ID | Nomor scene grup + urutan shot (#1, #2) |
 | Status Badge | 🟡 PENDING / ✅ TAKE DONE / 🔄 REVISI |
 | Shot Type & Angle | Close Up, Wide, Top Down, dll |
 | Equipment | Chips/tag per alat |
@@ -238,6 +241,7 @@ Setiap klien bisa memiliki lebih dari satu proyek/video. Tim mengerjakan proyek 
   "id": "uuid",
   "project_id": "uuid",
   "scene": 1,
+  "shotNumber": 1,
   "sceneLabel": "Scene 1",
   "shotType": "Close Up",
   "angle": "Eye Level",
@@ -399,3 +403,4 @@ onset-creative-assistant/
 | 1.0 | Agustus 2026 | Dokumen awal dibuat |
 | 1.1 | Agustus 2026 | Keputusan final dikonfirmasi: localStorage Fase 1, Backend Proxy Fase 2, Firebase Fase 3. Multi-proyek. No login. |
 | 2.0 | Agustus 2026 | **Fase 2 Selesai**: Migrasi ke Supabase PostgreSQL + Real-time WebSocket. Rencana Fase 2 (Google Sheets) digantikan oleh Supabase yang lebih sederhana dan lebih powerful. Semua item Fase 2 baru ditandai selesai. |
+| 2.1 | Agustus 2026 | **Fitur Baru**: Implementasi arsitektur Multi-Shot per Scene. UI dikelompokkan menggunakan `SceneGroup`. Penambahan field `shotNumber` di Supabase. Perbaikan fitur reorder dan penomoran otomatis. |

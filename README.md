@@ -28,6 +28,7 @@ Di lapangan, tim creative seringkali kerepotan mengatur kertas kerja fisik (atau
 
 - **🎬 Multi-Project Management**: Kelola berbagai project (seperti Grillme, Project W, dll) dalam satu aplikasi.
 - **⚡ Real-time Multi-Device Sync**: Perubahan status shot (TAKE_DONE, REVISI) otomatis sinkron ke semua HP/Laptop tim dalam hitungan milidetik via Supabase WebSocket.
+- **📂 Multi-Shot Scene Grouping**: UI rapi yang mengelompokkan beberapa *shot list* ke dalam satu Scene Folder (misal Scene 1 memiliki Wide Shot, Close Up, Panning, dll).
 - **🔄 Tech & Talent Mode Toggle**:
   - **Tech View**: Menampilkan detail lengkap (scene, equipment, angle, shot type, referensi, quick log, status).
   - **Talent View**: Mode naskah bersih, font besar, menyembunyikan detail teknis, dilengkapi dengan badge instruksi warna-warni (misal: `<EKSPRESI KAGET>`, `<NADA BICARA CEPAT>`).
