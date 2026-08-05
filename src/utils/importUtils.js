@@ -58,7 +58,11 @@ export const parseShotTable = (rows) => {
       briefAction = String(row[4] || '');
     }
 
+    const sceneMatch = sceneLabel.match(/\d+/);
+    const sceneNumber = sceneMatch ? parseInt(sceneMatch[0], 10) : i;
+
     parsedShots.push({
+      scene: sceneNumber,
       sceneLabel: sceneLabel.trim(),
       shotType: shotType.trim(),
       angle: angle.trim(),
