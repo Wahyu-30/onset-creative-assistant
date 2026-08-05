@@ -84,7 +84,10 @@ export function useShots(projectId) {
       setShots(prev => {
         if (prev.find(s => s.id === newShot.id)) return prev;
         const newArr = [...prev, newShot]
-        return sortShots(newArr)
+        return newArr.sort((a, b) => {
+          if (a.scene !== b.scene) return a.scene - b.scene
+          return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+        })
       })
       return newShot
     } catch (err) {
