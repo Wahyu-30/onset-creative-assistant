@@ -56,6 +56,28 @@ export const shotsService = {
     }
   },
 
+  // Ambil statistik shot (ringan, tanpa konten penuh) untuk semua proyek
+  async getAllShotStats() {
+    const { data, error } = await supabase
+      .from('shots')
+      .select('project_id, status')
+
+    if (error) {
+      console.error('Error fetching shot stats:', error)
+      return []
+    }
+    return data || []
+  },
+
+  // Reorder: update scene number sebuah shot
+  async reorderShot(id, newScene) {
+    const { error } = await supabase
+      .from('shots')
+      .update({ scene: newScene, updatedAt: new Date().toISOString() })
+      .eq('id', id)
+    if (error) throw error
+  },
+
   // Digunakan untuk migrasi data awal
   async bulkInsertShots(shotsData) {
     const { error } = await supabase

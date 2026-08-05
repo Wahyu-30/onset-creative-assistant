@@ -110,6 +110,35 @@ export function useShots(projectId) {
     updateShot(shotId, { notes })
   }
 
+  // Geser shot ke atas atau bawah (swap scene number)
+  const moveShot = async (shotId, direction) => {
+    const sorted = [...shots].sort((a, b) => a.scene - b.scene)
+    const idx = sorted.findIndex(s => s.id === shotId)
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= sorted.length) return
+
+    const a = sorted[idx]
+    const b = sorted[swapIdx]
+    const tempScene = a.scene
+
+    // Optimistic update
+    setShots(prev => prev.map(s => {
+      if (s.id === a.id) return { ...s, scene: b.scene }
+      if (s.id === b.id) return { ...s, scene: tempScene }
+      return s
+    }))
+
+    try {
+      await Promise.all([
+        shotsService.reorderShot(a.id, b.scene),
+        shotsService.reorderShot(b.id, tempScene)
+      ])
+    } catch (err) {
+      console.error(err)
+      fetchShots()
+    }
+  }
+
   // Progress calculation
   const totalShots = shots.length
   const doneShots = shots.filter(s => s.status === 'TAKE_DONE').length
@@ -131,6 +160,7 @@ export function useShots(projectId) {
     addShot,
     updateShot,
     deleteShot,
+    moveShot,
     setStatus,
     addNote,
     loading,

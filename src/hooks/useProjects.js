@@ -1,20 +1,34 @@
 import { useState, useEffect } from 'react'
 import { projectsService } from '../services/projectsService'
+import { shotsService } from '../services/shotsService'
 
 export function useProjects() {
   const [projects, setProjects] = useState([])
+  const [shotStats, setShotStats] = useState({}) // { projectId: { total, done } }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetchProjects()
+    fetchAll()
   }, [])
 
-  const fetchProjects = async () => {
+  const fetchAll = async () => {
     try {
       setLoading(true)
-      const data = await projectsService.getAllProjects()
-      setProjects(data)
+      const [projectsData, statsData] = await Promise.all([
+        projectsService.getAllProjects(),
+        shotsService.getAllShotStats()
+      ])
+      setProjects(projectsData)
+
+      // Hitung statistik per project
+      const stats = {}
+      statsData.forEach(s => {
+        if (!stats[s.project_id]) stats[s.project_id] = { total: 0, done: 0 }
+        stats[s.project_id].total++
+        if (s.status === 'TAKE_DONE') stats[s.project_id].done++
+      })
+      setShotStats(stats)
     } catch (err) {
       setError(err)
     } finally {
@@ -60,6 +74,10 @@ export function useProjects() {
     return projects.find(p => p.id === projectId)
   }
 
+  const getProjectStats = (projectId) => {
+    return shotStats[projectId] || { total: 0, done: 0 }
+  }
+
   const activeProjects = projects.filter(p => p.status === 'active')
   const archivedProjects = projects.filter(p => p.status === 'archived')
 
@@ -72,6 +90,7 @@ export function useProjects() {
     deleteProject,
     archiveProject,
     getProject,
+    getProjectStats,
     loading,
     error
   }

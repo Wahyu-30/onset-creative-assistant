@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Plus, Edit2, X } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, X, Printer } from 'lucide-react'
 import { useProjects } from '../hooks/useProjects'
 import { useShots } from '../hooks/useShots'
 import ProductionProgress from '../components/ProgressBar/ProductionProgress'
@@ -24,7 +24,7 @@ export default function ProductionPage() {
   const navigate = useNavigate()
   const { getProject, updateProject, loading: projectsLoading } = useProjects()
   const project = getProject(projectId)
-  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, updateShot, deleteShot, setStatus, addNote, loading: shotsLoading } = useShots(projectId)
+  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, updateShot, deleteShot, moveShot, setStatus, addNote, loading: shotsLoading } = useShots(projectId)
 
   const [mode, setMode] = useState('tech') // 'tech' | 'talent'
   const [activeScene, setActiveScene] = useState(null)
@@ -87,6 +87,9 @@ export default function ProductionPage() {
           </div>
         </div>
         <div className="prod-header__right">
+          <button className="prod-header__icon-btn" onClick={() => window.print()} aria-label="Print call sheet" title="Print Call Sheet">
+            <Printer size={16} />
+          </button>
           <button className="prod-header__icon-btn" onClick={() => setShowEditProject(true)} aria-label="Edit proyek">
             <Edit2 size={16} />
           </button>
@@ -215,10 +218,15 @@ export default function ProductionPage() {
                         key={shot.id}
                         shot={shot}
                         index={i}
+                        totalShots={filteredShots.length}
                         onStatusChange={setStatus}
                         onNoteChange={addNote}
                         onEdit={openEditShotForm}
                         onDelete={deleteShot}
+                        onMoveUp={() => moveShot(shot.id, 'up')}
+                        onMoveDown={() => moveShot(shot.id, 'down')}
+                        isFirst={i === 0}
+                        isLast={i === filteredShots.length - 1}
                       />
                     ))
                   )}

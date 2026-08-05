@@ -8,7 +8,7 @@ import './HomePage.css'
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { activeProjects, archivedProjects, createProject, deleteProject, archiveProject, loading: projectsLoading } = useProjects()
+  const { activeProjects, archivedProjects, createProject, deleteProject, archiveProject, getProjectStats, loading: projectsLoading } = useProjects()
   const [showForm, setShowForm] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
@@ -103,6 +103,7 @@ export default function HomePage() {
                     key={project.id}
                     project={project}
                     index={i}
+                    stats={getProjectStats(project.id)}
                     onOpen={handleOpen}
                     onDelete={handleDelete}
                     onArchive={handleArchive}
@@ -145,6 +146,7 @@ export default function HomePage() {
                       key={project.id}
                       project={project}
                       index={i}
+                      stats={getProjectStats(project.id)}
                       onOpen={handleOpen}
                       onDelete={handleDelete}
                       onArchive={handleArchive}
@@ -169,10 +171,8 @@ export default function HomePage() {
   )
 }
 
-function ProjectCard({ project, index, onOpen, onDelete, onArchive, isDeleting, isArchived }) {
-  const shots = project.shots || []
-  const doneCount = shots.filter(s => s.status === 'TAKE_DONE').length
-  const totalCount = shots.length
+function ProjectCard({ project, index, stats = { total: 0, done: 0 }, onOpen, onDelete, onArchive, isDeleting, isArchived }) {
+  const { total: totalCount, done: doneCount } = stats
   const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
 
   return (

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Package, AlignLeft, Quote, Link2, ChevronDown, CheckCircle2,
+  Package, AlignLeft, Quote, Link2, ChevronDown, ChevronUp, CheckCircle2,
   RotateCcw, StickyNote, Image, Video, Edit3, Trash2, ExternalLink
 } from 'lucide-react'
 import StatusBadge from './StatusBadge'
@@ -60,7 +60,7 @@ function RefImage({ img, index, onClick }) {
   )
 }
 
-export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, index }) {
+export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast, index }) {
   const [expanded, setExpanded] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
   const [showLog, setShowLog] = useState(false)
@@ -151,6 +151,27 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
             </div>
           </div>
           <div className="shot-card__header-right">
+            {/* Reorder buttons */}
+            <div className="shot-card__reorder" onClick={e => e.stopPropagation()}>
+              <button
+                className="shot-card__reorder-btn"
+                onClick={onMoveUp}
+                disabled={isFirst}
+                aria-label="Geser ke atas"
+                title="Geser ke atas"
+              >
+                <ChevronUp size={13} />
+              </button>
+              <button
+                className="shot-card__reorder-btn"
+                onClick={onMoveDown}
+                disabled={isLast}
+                aria-label="Geser ke bawah"
+                title="Geser ke bawah"
+              >
+                <ChevronDown size={13} />
+              </button>
+            </div>
             {hasReferences && (
               <span className="shot-card__reference-indicator" title={`Referensi: ${referenceLabel}`}>
                 {imageCount > 0 && <span>📷{imageCount}</span>}

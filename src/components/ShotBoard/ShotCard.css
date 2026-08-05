@@ -391,3 +391,104 @@
   font-size: 11px;
   animation: pulse 0.8s ease-in-out infinite;
 }
+
+/* ── Reorder Buttons ── */
+.shot-card__reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.shot-card__reorder-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.shot-card__reorder-btn:hover:not(:disabled) {
+  color: var(--accent-secondary);
+  background: rgba(108, 99, 255, 0.12);
+}
+
+.shot-card__reorder-btn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+/* ── Print / PDF Styles ── */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .prod-header,
+  .prod-mode-toggle-bar,
+  .prod-production-progress,
+  .filter-bar,
+  .shot-card__actions,
+  .shot-card__status-actions,
+  .shot-card__reorder,
+  .prod-add-shot-btn,
+  .quick-log,
+  .image-viewer-overlay {
+    display: none !important;
+  }
+
+  .page-wrapper {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .prod-shot-list {
+    display: block !important;
+  }
+
+  .shot-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+    margin-bottom: 12px !important;
+    border-radius: 8px !important;
+  }
+
+  .shot-card::before {
+    display: none !important;
+  }
+
+  .shot-card__scene-label,
+  .shot-card__shot-type,
+  .shot-card__brief-text,
+  .shot-card__detail-value {
+    color: black !important;
+  }
+
+  .shot-card__detail-label {
+    color: #555 !important;
+  }
+
+  /* Force expand all cards when printing */
+  .shot-card__details {
+    display: block !important;
+    height: auto !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
+
+  .shot-card__scene-badge {
+    background: #eee !important;
+    color: black !important;
+  }
+}
+
