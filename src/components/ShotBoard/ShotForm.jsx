@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { X, Plus, Trash2 } from 'lucide-react'
+import { X, Plus, Trash2, Upload } from 'lucide-react'
+import { storageService } from '../../services/storageService'
+import imageCompression from 'browser-image-compression'
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Medium Close Up', 'Close Up', 'Extreme Close Up', 'Half Body', 'Full Body', 'Flatlay / Product Shot', 'Over The Shoulder']
 const ANGLES = ['Eye Level', 'Low Angle', 'High Angle', 'Top Down', 'Top Down / Flatlay', 'Side Angle', 'Dutch Angle', 'Panning Orbit']
@@ -44,6 +46,47 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
     if (isValidHttpUrl(newImage)) {
       update('referenceImages', [...form.referenceImages, newImage.trim()])
       setNewImage('')
+    }
+  }
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    
+    // Check if video (for size limit)
+    const isVideo = file.type.startsWith('video/')
+    const maxSize = isVideo ? 20 * 1024 * 1024 : 5 * 1024 * 1024
+    
+    if (file.size > maxSize) {
+      alert(`Ukuran file terlalu besar! Maksimal ${isVideo ? '20MB (Video)' : '5MB (Foto)'}`)
+      return
+    }
+
+    try {
+      setLoading(true)
+      let fileToUpload = file;
+      
+      if (!isVideo) {
+        // Compress image to save Supabase quota (~200KB)
+        const options = {
+          maxSizeMB: 0.2,
+          maxWidthOrHeight: 1080,
+          useWebWorker: true
+        }
+        fileToUpload = await imageCompression(file, options)
+      }
+
+      const url = await storageService.uploadFile(fileToUpload, 'shots')
+      if (isVideo) {
+        update('referenceLinks', [...form.referenceLinks, url])
+      } else {
+        update('referenceImages', [...form.referenceImages, url])
+      }
+    } catch (err) {
+      alert('Gagal mengupload file. Pastikan setelan Supabase Storage sudah benar.')
+    } finally {
+      setLoading(false)
+      e.target.value = null // reset input
     }
   }
 
@@ -194,7 +237,7 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
 
           {/* Framing Reference Images */}
           <div className="form-group">
-            <label className="form-label">Foto Referensi Framing (URL)</label>
+            <label className="form-label">Foto Referensi Framing (URL / Upload)</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <input
                 type="url"
@@ -206,6 +249,10 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
               <button type="button" className="btn-secondary" style={{ width: 'auto', padding: '10px 14px', flexShrink: 0 }} onClick={addImage}>
                 <Plus size={16} />
               </button>
+              <label className="btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 'auto', padding: '10px 14px', flexShrink: 0, cursor: 'pointer', margin: 0 }}>
+                <Upload size={16} />
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
+              </label>
             </div>
             {form.referenceImages.map((image, i) => (
               <div key={image} className="shot-form__link-row">
@@ -220,7 +267,7 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
 
           {/* Reference Video Links */}
           <div className="form-group">
-            <label className="form-label">Video Referensi (TikTok / Reels)</label>
+            <label className="form-label">Video Referensi (URL / Upload)</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <input
                 type="url"
@@ -232,6 +279,10 @@ export default function ShotForm({ shots, editShot, onAddShot, onUpdateShot, onC
               <button type="button" className="btn-secondary" style={{ width: 'auto', padding: '10px 14px', flexShrink: 0 }} onClick={addLink}>
                 <Plus size={16} />
               </button>
+              <label className="btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 'auto', padding: '10px 14px', flexShrink: 0, cursor: 'pointer', margin: 0 }}>
+                <Upload size={16} />
+                <input type="file" accept="video/*" style={{ display: 'none' }} onChange={handleFileUpload} />
+              </label>
             </div>
             {form.referenceLinks.map((link, i) => (
               <div key={i} className="shot-form__link-row">

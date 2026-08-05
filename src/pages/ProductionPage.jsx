@@ -11,6 +11,7 @@ import ShotCard from '../components/ShotBoard/ShotCard'
 import ScriptView from '../components/TalentView/ScriptView'
 import ShotForm from '../components/ShotBoard/ShotForm'
 import ProjectForm from '../components/ProjectManager/ProjectForm'
+import KertasKerja from '../components/ProjectManager/KertasKerja'
 import ImageViewer from '../components/ImageViewer/ImageViewer'
 import '../components/ShotBoard/ShotCard.css'
 import '../components/ShotBoard/QuickLog.css'
@@ -197,6 +198,8 @@ export default function ProductionPage() {
 
       {/* ── Main Content ── */}
       <div className="prod-content">
+        <KertasKerja project={project} />
+        
         <AnimatePresence mode="wait">
           {mode === 'tech' ? (
             <motion.div
