@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Trash2, Upload, FileDown, CheckCircle } from 'lucide-react'
 import { storageService } from '../../services/storageService'
 import { shotsService } from '../../services/shotsService'
