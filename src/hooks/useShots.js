@@ -22,10 +22,20 @@ export function useShots(projectId) {
             setShots(prev => {
               // avoid duplicate if we inserted it locally
               if (prev.find(s => s.id === payload.new.id)) return prev;
-              return [...prev, payload.new].sort((a, b) => a.scene - b.scene)
+              const newArr = [...prev, payload.new]
+              return newArr.sort((a, b) => {
+                if (a.scene !== b.scene) return a.scene - b.scene
+                return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+              })
             })
           } else if (payload.eventType === 'UPDATE') {
-            setShots(prev => prev.map(s => s.id === payload.new.id ? payload.new : s))
+            setShots(prev => {
+              const mapped = prev.map(s => s.id === payload.new.id ? payload.new : s)
+              return mapped.sort((a, b) => {
+                if (a.scene !== b.scene) return a.scene - b.scene
+                return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+              })
+            })
           } else if (payload.eventType === 'DELETE') {
             setShots(prev => prev.filter(s => s.id !== payload.old.id))
           }
@@ -84,7 +94,13 @@ export function useShots(projectId) {
   const updateShot = async (shotId, updates) => {
     try {
       // Optimistic update for UI feel
-      setShots(prev => prev.map(s => s.id === shotId ? { ...s, ...updates } : s))
+      setShots(prev => {
+        const mapped = prev.map(s => s.id === shotId ? { ...s, ...updates } : s)
+        return mapped.sort((a, b) => {
+          if (a.scene !== b.scene) return a.scene - b.scene
+          return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+        })
+      })
       await shotsService.updateShot(shotId, updates)
     } catch (err) {
       console.error(err)
@@ -126,11 +142,17 @@ export function useShots(projectId) {
     const tempUpdatedAt = a.updatedAt
 
     // Optimistic update
-    setShots(prev => prev.map(s => {
-      if (s.id === a.id) return { ...s, scene: b.scene, updatedAt: b.updatedAt }
-      if (s.id === b.id) return { ...s, scene: tempScene, updatedAt: tempUpdatedAt }
-      return s
-    }))
+    setShots(prev => {
+      const mapped = prev.map(s => {
+        if (s.id === a.id) return { ...s, scene: b.scene, updatedAt: b.updatedAt }
+        if (s.id === b.id) return { ...s, scene: tempScene, updatedAt: tempUpdatedAt }
+        return s
+      })
+      return mapped.sort((a, b) => {
+        if (a.scene !== b.scene) return a.scene - b.scene
+        return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+      })
+    })
 
     try {
       await Promise.all([
