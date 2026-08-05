@@ -20,6 +20,9 @@
   z-index: 60;
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .prod-header__left {
@@ -112,6 +115,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .prod-info-panel__close {
@@ -192,6 +198,11 @@
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
+.prod-mode-toggle-bar-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
 
 /* ── Content Area ── */
 .prod-content {
@@ -216,6 +227,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Add Shot Button */
@@ -253,6 +267,11 @@
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
+}
+.prod-talent-filter-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .hover-bg {

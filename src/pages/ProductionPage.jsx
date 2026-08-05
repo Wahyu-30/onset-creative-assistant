@@ -259,7 +259,9 @@ export default function ProductionPage() {
 
       {/* ── Mode Toggle ── */}
       <div className="prod-mode-toggle-bar">
-        <ModeToggle mode={mode} onToggle={setMode} />
+        <div className="prod-mode-toggle-bar-inner">
+          <ModeToggle mode={mode} onToggle={setMode} />
+        </div>
       </div>
 
       {/* ── Main Content ── */}
@@ -360,18 +362,20 @@ export default function ProductionPage() {
             >
               {/* Scene filter for talent too */}
               <div className="prod-talent-filter">
-                <div className="filter-bar__scroll" style={{ padding: '8px 16px' }}>
-                  <button
-                    className={`filter-bar__scene-btn ${activeScene === null ? 'active' : ''}`}
-                    onClick={() => setActiveScene(null)}
-                  >All</button>
-                  {scenes.map(sc => (
+                <div className="prod-talent-filter-inner">
+                  <div className="filter-bar__scroll" style={{ padding: '8px 16px' }}>
                     <button
-                      key={sc}
-                      className={`filter-bar__scene-btn ${activeScene === sc ? 'active' : ''}`}
-                      onClick={() => setActiveScene(sc)}
-                    >S{sc}</button>
-                  ))}
+                      className={`filter-bar__scene-btn ${activeScene === null ? 'active' : ''}`}
+                      onClick={() => setActiveScene(null)}
+                    >All</button>
+                    {scenes.map(sc => (
+                      <button
+                        key={sc}
+                        className={`filter-bar__scene-btn ${activeScene === sc ? 'active' : ''}`}
+                        onClick={() => setActiveScene(sc)}
+                      >S{sc}</button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <ScriptView shots={shots} activeSceneFilter={activeScene} />
