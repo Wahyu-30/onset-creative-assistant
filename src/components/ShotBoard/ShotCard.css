@@ -426,69 +426,44 @@
 
 /* ── Print / PDF Styles ── */
 @media print {
-  body {
-    background: white !important;
-    color: black !important;
-  }
-
-  .prod-header,
-  .prod-mode-toggle-bar,
-  .prod-production-progress,
-  .filter-bar,
-  .shot-card__actions,
-  .shot-card__status-actions,
-  .shot-card__reorder,
-  .prod-add-shot-btn,
-  .quick-log,
-  .image-viewer-overlay {
-    display: none !important;
-  }
-
-  .page-wrapper {
-    padding: 0 !important;
-    max-width: 100% !important;
-  }
-
-  .prod-shot-list {
-    display: block !important;
-  }
-
-  .shot-card {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    border: 1px solid #ccc !important;
-    background: white !important;
-    color: black !important;
-    margin-bottom: 12px !important;
-    border-radius: 8px !important;
-  }
-
-  .shot-card::before {
-    display: none !important;
-  }
-
-  .shot-card__scene-label,
-  .shot-card__shot-type,
-  .shot-card__brief-text,
-  .shot-card__detail-value {
-    color: black !important;
-  }
-
-  .shot-card__detail-label {
-    color: #555 !important;
-  }
-
-  /* Force expand all cards when printing */
-  .shot-card__details {
-    display: block !important;
-    height: auto !important;
-    opacity: 1 !important;
-    overflow: visible !important;
-  }
-
-  .shot-card__scene-badge {
-    background: #eee !important;
-    color: black !important;
-  }
+  body { background: white !important; color: black !important; }
+  .prod-header, .prod-mode-toggle-bar, .prod-production-progress, .filter-bar, .shot-card__actions, .shot-card__status-actions, .shot-card__reorder, .prod-add-shot-btn, .quick-log, .image-viewer-overlay { display: none !important; }
+  .page-wrapper { padding: 0 !important; max-width: 100% !important; }
+  .prod-shot-list { display: block !important; }
+  .shot-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ccc !important; background: white !important; color: black !important; margin-bottom: 12px !important; border-radius: 8px !important; }
+  .shot-card::before { display: none !important; }
+  .shot-card__scene-label, .shot-card__shot-type, .shot-card__brief-text, .shot-card__detail-value { color: black !important; }
+  .shot-card__detail-label { color: #555 !important; }
+  .shot-card__details { display: block !important; height: auto !important; opacity: 1 !important; overflow: visible !important; }
+  .shot-card__scene-badge { background: #eee !important; color: black !important; }
 }
+
+/* Apply the exact same styles when exporting PDF via html2pdf */
+.pdf-export-mode,
+.pdf-export-mode body {
+  background: white !important; color: black !important;
+}
+.pdf-export-mode .prod-header,
+.pdf-export-mode .prod-mode-toggle-bar,
+.pdf-export-mode .prod-production-progress,
+.pdf-export-mode .filter-bar,
+.pdf-export-mode .shot-card__actions,
+.pdf-export-mode .shot-card__status-actions,
+.pdf-export-mode .shot-card__reorder,
+.pdf-export-mode .prod-add-shot-btn,
+.pdf-export-mode .quick-log,
+.pdf-export-mode .image-viewer-overlay {
+  display: none !important;
+}
+.pdf-export-mode .page-wrapper { padding: 0 !important; max-width: 100% !important; }
+.pdf-export-mode .prod-shot-list { display: block !important; }
+.pdf-export-mode .shot-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ccc !important; background: white !important; color: black !important; margin-bottom: 12px !important; border-radius: 8px !important; }
+.pdf-export-mode .shot-card::before { display: none !important; }
+.pdf-export-mode .shot-card__scene-label,
+.pdf-export-mode .shot-card__shot-type,
+.pdf-export-mode .shot-card__brief-text,
+.pdf-export-mode .shot-card__detail-value { color: black !important; }
+.pdf-export-mode .shot-card__detail-label { color: #555 !important; }
+.pdf-export-mode .shot-card__details { display: block !important; height: auto !important; opacity: 1 !important; overflow: visible !important; }
+.pdf-export-mode .shot-card__scene-badge { background: #eee !important; color: black !important; }
 

@@ -45,6 +45,29 @@ export default function ProductionPage() {
     setShowShotForm(true)
   }
 
+  const handleDownloadPDF = async () => {
+    const html2pdf = (await import('html2pdf.js')).default;
+    const element = document.querySelector('.prod-content');
+    
+    // Create a temporary wrapper to force print styles for PDF
+    const opt = {
+      margin:       10,
+      filename:     `CallSheet_${project.name.replace(/\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Temporarily add a class to body to simulate print styles
+    document.body.classList.add('pdf-export-mode');
+    
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } finally {
+      document.body.classList.remove('pdf-export-mode');
+    }
+  }
+
   // Filtered shots
   const filteredShots = useMemo(() => {
     let result = shots
@@ -87,7 +110,7 @@ export default function ProductionPage() {
           </div>
         </div>
         <div className="prod-header__right">
-          <button className="prod-header__icon-btn" onClick={() => window.print()} aria-label="Print call sheet" title="Print Call Sheet">
+          <button className="prod-header__icon-btn" onClick={handleDownloadPDF} aria-label="Download Call Sheet PDF" title="Download PDF">
             <Printer size={16} />
           </button>
           <button className="prod-header__icon-btn" onClick={() => setShowEditProject(true)} aria-label="Edit proyek">
