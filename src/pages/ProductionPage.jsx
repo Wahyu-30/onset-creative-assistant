@@ -217,6 +217,26 @@ export default function ProductionPage() {
                   <p className="prod-info-text">{project.concept}</p>
                 </div>
               )}
+              {project.styleGuide?.formatSpec && (
+                <div className="prod-info-section">
+                  <p className="prod-info-label">📱 Format / Ukuran</p>
+                  <p className="prod-info-text">{project.styleGuide.formatSpec}</p>
+                </div>
+              )}
+              {project.styleGuide?.shootDate && (
+                <div className="prod-info-section">
+                  <p className="prod-info-label">📅 Jadwal Shoot</p>
+                  <p className="prod-info-text">
+                    {project.styleGuide.shootDate} {project.styleGuide.shootTime ? `- ${project.styleGuide.shootTime}` : ''}
+                  </p>
+                </div>
+              )}
+              {project.styleGuide?.shootLocation && (
+                <div className="prod-info-section">
+                  <p className="prod-info-label">📍 Lokasi Shoot</p>
+                  <p className="prod-info-text">{project.styleGuide.shootLocation}</p>
+                </div>
+              )}
               {project.styleGuide?.notes && (
                 <div className="prod-info-section">
                   <p className="prod-info-label">🎨 Panduan Gaya</p>
