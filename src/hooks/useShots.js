@@ -129,6 +129,7 @@ export function useShots(projectId) {
       // Optimistic update for UI feel
       setShots(prev => {
         const mapped = prev.map(s => s.id === shotId ? { ...s, ...updates } : s)
+        return mapped.sort((a, b) => {
           if (a.scene !== b.scene) return a.scene - b.scene
           return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
         })
