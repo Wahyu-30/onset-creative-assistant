@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { X, Plus, Trash2, Upload } from 'lucide-react'
+import { X, Plus, Trash2, Upload, FileDown, CheckCircle } from 'lucide-react'
 import { storageService } from '../../services/storageService'
+import { shotsService } from '../../services/shotsService'
 import imageCompression from 'browser-image-compression'
+import ImportModal from '../ShotBoard/ImportModal'
 
 export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }) {
   const isEdit = !!editProject
@@ -24,6 +26,8 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
   const [newLink, setNewLink] = useState('')
   const [newImage, setNewImage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [importShots, setImportShots] = useState([])
 
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
@@ -78,7 +82,7 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim() || !form.client.trim()) return
     setLoading(true)
@@ -100,44 +104,58 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
       }
     }
 
-    setTimeout(() => {
+    try {
       if (isEdit) {
-        onUpdate(editProject.id, projectData)
+        await onUpdate(editProject.id, projectData)
       } else {
-        onCreate(projectData)
+        const newProject = await onCreate(projectData)
+        if (newProject && importShots.length > 0) {
+          const newShotsData = importShots.map((shot, idx) => ({
+            ...shot,
+            project_id: newProject.id,
+            status: 'PENDING',
+            updatedAt: new Date(Date.now() + idx).toISOString()
+          }))
+          await shotsService.bulkAddShots(newShotsData)
+        }
       }
-      setLoading(false)
       onClose()
-    }, 300)
+    } catch (err) {
+      console.error(err)
+      alert('Gagal menyimpan proyek.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <motion.div
-      className="overlay"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
+    <>
       <motion.div
-        className="modal"
-        initial={{ opacity: 0, y: 40, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 40, scale: 0.95 }}
-        onClick={e => e.stopPropagation()}
+        className="overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
       >
-        <div className="modal__header">
-          <h2 className="modal__title">
-            {isEdit ? 'Edit Proyek' : '✨ Proyek Baru'}
-          </h2>
-          <button className="modal__close" onClick={onClose}>
-            <X size={16} />
-          </button>
-        </div>
+        <motion.div
+          className="modal"
+          initial={{ opacity: 0, y: 40, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 40, scale: 0.95 }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="modal__header">
+            <h2 className="modal__title">
+              {isEdit ? 'Edit Proyek' : '✨ Proyek Baru'}
+            </h2>
+            <button className="modal__close" onClick={onClose}>
+              <X size={16} />
+            </button>
+          </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-group">
+          <form onSubmit={handleSubmit}>
+            <div className="form-row">
+              <div className="form-group">
               <label className="form-label">Nama Proyek *</label>
               <input
                 type="text"
@@ -298,12 +316,47 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
 
           <div className="divider" />
 
+          {!isEdit && (
+            <div className="form-group" style={{ background: 'var(--bg-elevated)', padding: '16px', borderRadius: '12px', border: '1px dashed var(--border-subtle)' }}>
+              <label className="form-label">Import Shot List (Opsional)</label>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                Anda bisa meng-import dokumen Google Docs (.docx) / Excel (.xlsx) atau melakukan Copy-Paste secara langsung, sehingga saat Proyek dibuat, daftar *Shot* akan otomatis terisi!
+              </p>
+              
+              {importShots.length > 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: 'rgba(63, 207, 142, 0.1)', border: '1px solid var(--status-done)', borderRadius: '8px', color: 'var(--status-done)', fontSize: '14px', fontWeight: 'bold' }}>
+                  <CheckCircle size={18} />
+                  {importShots.length} Shot siap di-import!
+                  <button type="button" className="btn-ghost" style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} onClick={() => setImportShots([])}>Batal</button>
+                </div>
+              ) : (
+                <button type="button" className="btn-secondary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }} onClick={() => setShowImportModal(true)}>
+                  <FileDown size={16} /> Import File / Copy Paste
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="divider" />
+
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? <div className="spinner" /> : (isEdit ? '💾 Simpan Perubahan' : '🚀 Buat Proyek')}
           </button>
         </form>
+        </motion.div>
       </motion.div>
-    </motion.div>
+
+      <AnimatePresence>
+        {showImportModal && (
+          <ImportModal
+            onClose={() => setShowImportModal(false)}
+            onImport={async (shots) => {
+              setImportShots(shots)
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
