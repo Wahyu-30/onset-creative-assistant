@@ -143,7 +143,7 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
         <div className="shot-card__header" onClick={() => setExpanded(!expanded)}>
           <div className="shot-card__header-left">
             <div className="shot-card__scene-badge">
-              <span className="shot-card__scene-num">{isMultiShot ? `#${shot.shotNumber || 1}` : shot.scene}</span>
+              <span className="shot-card__scene-num">{isMultiShot ? `#${index + 1}` : shot.scene}</span>
             </div>
             <div className="shot-card__title-group">
               <h3 className="shot-card__scene-label">{shot.sceneLabel}</h3>
