@@ -134,7 +134,8 @@ export default function ProductionPage() {
     <div className="page-wrapper prod-page">
       {/* ── Header ── */}
       <header className="prod-header glass">
-        <div className="prod-header__left">
+        <div className="prod-header-inner">
+          <div className="prod-header__left">
           <button className="prod-header__back" onClick={() => navigate('/')} aria-label="Kembali">
             <ArrowLeft size={20} />
           </button>
@@ -186,6 +187,7 @@ export default function ProductionPage() {
           <button className="prod-header__icon-btn" onClick={openNewShotForm} aria-label="Tambah shot">
             <Plus size={18} />
           </button>
+        </div>
         </div>
       </header>
 
