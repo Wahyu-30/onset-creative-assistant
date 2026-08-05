@@ -1,6 +1,51 @@
 import * as mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
 
+// Smart Parser untuk Teks Bebas (Bukan Tabel)
+export const parseUnstructuredText = (text) => {
+  // Mencari "Scene 1", "1. Scene 1:", "Scene 1 - Hook", dsb.
+  const regex = /(?:^|\n)(?:\d+\.\s*)?Scene\s*(\d+)(.*?)(?=(?:^|\n)(?:\d+\.\s*)?Scene\s*\d+|$)/gis;
+  const shotsMap = new Map();
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    const sceneNumber = parseInt(match[1], 10);
+    let content = match[2].trim();
+    
+    // Hilangkan karakter pemisah di awal (seperti ": ", "- ", dll)
+    content = content.replace(/^[:\-]\s*/, '');
+
+    if (shotsMap.has(sceneNumber)) {
+      // Jika scene ini sudah ada sebelumnya (misalnya bagian Action di atas, bagian Text/Dialog di bawah)
+      const existing = shotsMap.get(sceneNumber);
+      // Asumsikan bagian kedua ini adalah dialog tambahan atau text
+      existing.dialog = (existing.dialog + '\n' + content).trim();
+    } else {
+      let dialog = '';
+      let briefAction = content;
+      
+      // Tebak dialog dari tanda kutip
+      const quoteMatch = content.match(/"([^"]+)"/);
+      if (quoteMatch) {
+        dialog = quoteMatch[1].trim();
+        briefAction = content.replace(quoteMatch[0], '').trim();
+      }
+
+      shotsMap.set(sceneNumber, {
+        scene: sceneNumber,
+        sceneLabel: `Scene ${sceneNumber}`,
+        shotType: '',
+        angle: '',
+        dialog: dialog,
+        briefAction: briefAction,
+        equipment: []
+      });
+    }
+  }
+
+  return Array.from(shotsMap.values());
+};
+
 // Utility untuk mendeteksi kolom berdasarkan header (Fuzzy Match)
 export const parseShotTable = (rows) => {
   if (!rows || rows.length === 0) return [];
@@ -95,6 +140,15 @@ export const parseDocxTable = async (fileBuffer) => {
       return Array.from(tr.querySelectorAll('td, th')).map(td => td.textContent.trim());
     });
 
+    // Cek apakah ini tabel shot list (minimal 3 kolom) atau tabel layout Kertas Kerja (cuma 2 kolom)
+    const maxCols = Math.max(...rows.map(r => r.length));
+    if (maxCols <= 2) {
+      // Ini format unstructured (Key-Value), gunakan Smart Parser pada teks aslinya
+      const textResult = await mammoth.extractRawText({ arrayBuffer: fileBuffer });
+      const unstructuredShots = parseUnstructuredText(textResult.value);
+      if (unstructuredShots.length > 0) return unstructuredShots;
+    }
+
     return parseShotTable(rows);
   } catch (err) {
     console.error("Docx parse error:", err);
@@ -126,6 +180,13 @@ export const parseTSVTable = (tsvString) => {
   const rows = tsvString.split('\n')
     .filter(row => row.trim() !== '')
     .map(row => row.split('\t').map(c => c.trim()));
+    
+  const maxCols = Math.max(...rows.map(r => r.length));
+  if (maxCols <= 2) {
+    // Kalau yang di-paste cuma 1 atau 2 kolom, kemungkinan besar itu teks bebas
+    const unstructuredShots = parseUnstructuredText(tsvString);
+    if (unstructuredShots.length > 0) return unstructuredShots;
+  }
     
   return parseShotTable(rows);
 };
