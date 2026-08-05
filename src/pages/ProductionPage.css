@@ -6,6 +6,10 @@
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base);
+  max-width: 800px !important;
+  margin: 0 auto;
+  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
 }
 
 /* ── Header ── */
