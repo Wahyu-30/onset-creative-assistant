@@ -366,7 +366,7 @@ export default function ProductionPage() {
                   )}
                 </AnimatePresence>
 
-                {/* Add Shot Button (bottom) */}
+                {/* Add Scene Button (bottom) */}
                 {shots.length > 0 && (
                   <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                     <motion.button
@@ -376,7 +376,7 @@ export default function ProductionPage() {
                       style={{ flex: 1, margin: 0 }}
                     >
                       <Plus size={16} />
-                      Tambah Shot
+                      Tambah Scene Baru
                     </motion.button>
                     <motion.button
                       className="prod-add-shot-btn"
