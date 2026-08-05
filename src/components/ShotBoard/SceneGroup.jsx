@@ -71,8 +71,8 @@ export default function SceneGroup({
                   onNoteChange={onNoteChange}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  onMoveUp={onMoveUp}
-                  onMoveDown={onMoveDown}
+                  onMoveUp={(e) => { e.stopPropagation(); onMoveUp(shot.id); }}
+                  onMoveDown={(e) => { e.stopPropagation(); onMoveDown(shot.id); }}
                   isFirst={i === 0}
                   isLast={i === shots.length - 1}
                   isMultiShot={true}

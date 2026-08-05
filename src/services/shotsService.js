@@ -83,11 +83,11 @@ export const shotsService = {
     return data || []
   },
 
-  // Reorder: update scene number and updatedAt to swap perfectly
-  async reorderShot(id, newScene, newUpdatedAt) {
+  // Reorder: update scene number, shotNumber, and updatedAt to swap perfectly
+  async reorderShot(id, newScene, newUpdatedAt, newShotNumber) {
     const { error } = await supabase
       .from('shots')
-      .update({ scene: newScene, updatedAt: newUpdatedAt })
+      .update({ scene: newScene, updatedAt: newUpdatedAt, shotNumber: newShotNumber })
       .eq('id', id)
     if (error) throw error
   },

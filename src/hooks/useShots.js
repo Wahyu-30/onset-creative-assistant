@@ -196,12 +196,13 @@ export function useShots(projectId) {
     const b = sorted[swapIdx]
     const tempScene = a.scene
     const tempUpdatedAt = a.updatedAt
+    const tempShotNumber = a.shotNumber || 1
 
     // Optimistic update
     setShots(prev => {
       const mapped = prev.map(s => {
-        if (s.id === a.id) return { ...s, scene: b.scene, updatedAt: b.updatedAt }
-        if (s.id === b.id) return { ...s, scene: tempScene, updatedAt: tempUpdatedAt }
+        if (s.id === a.id) return { ...s, scene: b.scene, updatedAt: b.updatedAt, shotNumber: b.shotNumber || 1 }
+        if (s.id === b.id) return { ...s, scene: tempScene, updatedAt: tempUpdatedAt, shotNumber: tempShotNumber }
         return s
       })
       return mapped.sort((a, b) => {
@@ -213,8 +214,8 @@ export function useShots(projectId) {
 
     try {
       await Promise.all([
-        shotsService.reorderShot(a.id, b.scene, b.updatedAt),
-        shotsService.reorderShot(b.id, tempScene, tempUpdatedAt)
+        shotsService.reorderShot(a.id, b.scene, b.updatedAt, b.shotNumber || 1),
+        shotsService.reorderShot(b.id, tempScene, tempUpdatedAt, tempShotNumber)
       ])
     } catch (err) {
       console.error(err)
