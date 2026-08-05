@@ -82,6 +82,6 @@ export default function SceneGroup({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
