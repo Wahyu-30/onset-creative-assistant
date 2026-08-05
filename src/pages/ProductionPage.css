@@ -255,6 +255,13 @@
   flex-shrink: 0;
 }
 
+.hover-bg {
+  transition: background 0.2s;
+}
+.hover-bg:hover {
+  background: var(--bg-surface) !important;
+}
+
 /* --- KERTAS KERJA PDF LAYOUT --- */
 .kertas-kerja {
   display: none;

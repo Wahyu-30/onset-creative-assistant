@@ -83,9 +83,42 @@ export function useShots(projectId) {
       const newShot = await shotsService.addShot(newShotData)
       setShots(prev => {
         if (prev.find(s => s.id === newShot.id)) return prev;
-        return [...prev, newShot]
+        const newArr = [...prev, newShot]
+        return sortShots(newArr)
       })
       return newShot
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const bulkAddShots = async (shotsArray) => {
+    try {
+      const nextScene = Math.max(0, ...shots.map(shot => shot.scene || 0)) + 1
+      let currentScene = nextScene
+
+      const newShotsData = shotsArray.map((shot, index) => {
+        const sceneNum = shot.scene ? Number(shot.scene) : (currentScene + index)
+        return {
+          project_id: projectId,
+          scene: sceneNum,
+          sceneLabel: shot.sceneLabel || `Scene ${sceneNum}`,
+          shotType: shot.shotType || '',
+          angle: shot.angle || '',
+          equipment: shot.equipment || [],
+          briefAction: shot.briefAction || '',
+          dialog: shot.dialog || '',
+          referenceImages: [],
+          referenceLinks: [],
+          status: 'PENDING',
+          notes: '',
+          updatedAt: new Date(Date.now() + index).toISOString(), // Ensure order
+          ...shot
+        }
+      })
+      
+      await shotsService.bulkAddShots(newShotsData)
+      await fetchShots() // Refresh to get DB IDs and real order
     } catch (err) {
       console.error(err)
     }
@@ -96,7 +129,6 @@ export function useShots(projectId) {
       // Optimistic update for UI feel
       setShots(prev => {
         const mapped = prev.map(s => s.id === shotId ? { ...s, ...updates } : s)
-        return mapped.sort((a, b) => {
           if (a.scene !== b.scene) return a.scene - b.scene
           return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
         })
@@ -184,6 +216,7 @@ export function useShots(projectId) {
     progressPercent,
     scenes,
     addShot,
+    bulkAddShots,
     updateShot,
     deleteShot,
     moveShot,

@@ -106,11 +106,13 @@ File `AGENTS.md` berisi detail lengkap mengenai arsitektur, struktur data, CSS v
 - Optimistic UI updates untuk pengalaman pengguna yang mulus.
 - Injeksi data sampel satu-klik via tombol "Isi Data Sample".
 
-### 🔜 Fase 3 (Rencana)
-- **Google Sheets Import**: Import shot list dari template Excel/Sheets ke Supabase.
-- **Ekspor PDF Call Sheet**: Cetak atau simpan halaman produksi sebagai PDF.
-- **Dashboard Analitik**: Pantau progress seluruh proyek dalam satu layar ringkasan.
+### ✅ Fase 3 (Sebagian Selesai) — Media & Kertas Kerja
+- **Integrasi Supabase Storage**: Upload foto/video referensi langsung (auto-compress ~200KB).
+- **Ekspor PDF Kertas Kerja**: Cetak format Kertas Kerja produksi (Info Project + Shot List) sebagai PDF.
+- **Dashboard Analitik (Basic)**: Pantau progress dan statistik seluruh proyek di halaman utama.
 
+### 🔜 Fase Lanjutan (Sedang Berjalan)
+- **CSV / Google Sheets Import**: Import shot list dari template Excel/Sheets ke dalam aplikasi secara otomatis.
 ---
 
 ## 📝 Catatan Tambahan

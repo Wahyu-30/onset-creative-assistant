@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Plus, Edit2, X, Printer } from 'lucide-react'
+import { ArrowLeft, Plus, Edit2, X, Printer, FileDown, FileText } from 'lucide-react'
 import { useProjects } from '../hooks/useProjects'
 import { useShots } from '../hooks/useShots'
 import ProductionProgress from '../components/ProgressBar/ProductionProgress'
@@ -12,6 +12,7 @@ import ScriptView from '../components/TalentView/ScriptView'
 import ShotForm from '../components/ShotBoard/ShotForm'
 import ProjectForm from '../components/ProjectManager/ProjectForm'
 import KertasKerja from '../components/ProjectManager/KertasKerja'
+import ImportModal from '../components/ShotBoard/ImportModal'
 import ImageViewer from '../components/ImageViewer/ImageViewer'
 import '../components/ShotBoard/ShotCard.css'
 import '../components/ShotBoard/QuickLog.css'
@@ -25,7 +26,7 @@ export default function ProductionPage() {
   const navigate = useNavigate()
   const { getProject, updateProject, loading: projectsLoading } = useProjects()
   const project = getProject(projectId)
-  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, updateShot, deleteShot, moveShot, setStatus, addNote, loading: shotsLoading } = useShots(projectId)
+  const { shots, totalShots, doneShots, pendingShots, revisiShots, progressPercent, scenes, addShot, bulkAddShots, updateShot, deleteShot, moveShot, setStatus, addNote, loading: shotsLoading } = useShots(projectId)
 
   const [mode, setMode] = useState('tech') // 'tech' | 'talent'
   const [activeScene, setActiveScene] = useState(null)
@@ -34,6 +35,8 @@ export default function ProductionPage() {
   const [editingShot, setEditingShot] = useState(null)
   const [showEditProject, setShowEditProject] = useState(false)
   const [showProjectInfo, setShowProjectInfo] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
 
   const openNewShotForm = () => {
@@ -66,7 +69,37 @@ export default function ProductionPage() {
       await html2pdf().set(opt).from(element).save();
     } finally {
       document.body.classList.remove('pdf-export-mode');
+      setShowExportMenu(false);
     }
+  }
+
+  const handleExportDocx = () => {
+    document.body.classList.add('pdf-export-mode');
+    
+    setTimeout(() => {
+      const element = document.querySelector('.prod-content');
+      if (!element) return;
+      
+      const htmlContent = element.innerHTML;
+      const docHtml = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Export to Docx</title></head>
+        <body>${htmlContent}</body>
+        </html>
+      `;
+      
+      const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `KertasKerja_${project.name.replace(/\s+/g, '_')}.doc`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      document.body.classList.remove('pdf-export-mode');
+      setShowExportMenu(false);
+    }, 100);
   }
 
   // Filtered shots
@@ -111,9 +144,42 @@ export default function ProductionPage() {
           </div>
         </div>
         <div className="prod-header__right">
-          <button className="prod-header__icon-btn" onClick={handleDownloadPDF} aria-label="Download Call Sheet PDF" title="Download PDF">
-            <Printer size={16} />
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button className="prod-header__icon-btn" onClick={() => setShowExportMenu(!showExportMenu)} aria-label="Export Menu" title="Export">
+              <Printer size={16} />
+            </button>
+            <AnimatePresence>
+              {showExportMenu && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '8px',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-card)',
+                    borderRadius: '8px',
+                    padding: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    zIndex: 100
+                  }}
+                >
+                  <button onClick={handleDownloadPDF} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'transparent', color: 'var(--text-primary)', border: 'none', textAlign: 'left', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }} className="hover-bg">
+                    <FileText size={14} color="#E53935" /> Export PDF
+                  </button>
+                  <button onClick={handleExportDocx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'transparent', color: 'var(--text-primary)', border: 'none', textAlign: 'left', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }} className="hover-bg">
+                    <FileText size={14} color="#2b579a" /> Export Word (.doc)
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <button className="prod-header__icon-btn" onClick={() => setShowEditProject(true)} aria-label="Edit proyek">
             <Edit2 size={16} />
           </button>
@@ -260,14 +326,26 @@ export default function ProductionPage() {
 
                 {/* Add Shot Button (bottom) */}
                 {shots.length > 0 && (
-                  <motion.button
-                    className="prod-add-shot-btn"
-                    onClick={openNewShotForm}
-                    whileTap={{ scale: 0.96 }}
-                  >
-                    <Plus size={16} />
-                    Tambah Shot Baru
-                  </motion.button>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <motion.button
+                      className="prod-add-shot-btn"
+                      onClick={openNewShotForm}
+                      whileTap={{ scale: 0.96 }}
+                      style={{ flex: 1, margin: 0 }}
+                    >
+                      <Plus size={16} />
+                      Tambah Shot
+                    </motion.button>
+                    <motion.button
+                      className="prod-add-shot-btn"
+                      onClick={() => setShowImportModal(true)}
+                      whileTap={{ scale: 0.96 }}
+                      style={{ flex: 1, margin: 0, borderColor: 'var(--accent-secondary)', color: 'var(--accent-secondary)' }}
+                    >
+                      <FileDown size={16} />
+                      Import dari Docs
+                    </motion.button>
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -313,14 +391,17 @@ export default function ProductionPage() {
             onClose={() => { setShowShotForm(false); setEditingShot(null) }}
           />
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
         {showEditProject && (
           <ProjectForm
             editProject={project}
             onUpdate={updateProject}
             onClose={() => setShowEditProject(false)}
+          />
+        )}
+        {showImportModal && (
+          <ImportModal
+            onClose={() => setShowImportModal(false)}
+            onImport={bulkAddShots}
           />
         )}
       </AnimatePresence>

@@ -30,6 +30,19 @@ export const shotsService = {
     return data
   },
 
+  async bulkAddShots(shotsArray) {
+    const { data, error } = await supabase
+      .from('shots')
+      .insert(shotsArray)
+      .select()
+      
+    if (error) {
+      console.error('Error bulk adding shots:', error)
+      throw error
+    }
+    return data
+  },
+
   async updateShot(id, updates) {
     const { data, error } = await supabase
       .from('shots')
