@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Trash2, Upload, FileDown, CheckCircle } from 'lucide-react'
+import { X, Plus, Trash2, Upload, FileDown, CheckCircle, Wand2 } from 'lucide-react'
 import { storageService } from '../../services/storageService'
 import { shotsService } from '../../services/shotsService'
 import imageCompression from 'browser-image-compression'
 import ImportModal from '../ShotBoard/ImportModal'
+import { parseProjectText } from '../../utils/importUtils'
 
 export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }) {
   const isEdit = !!editProject
@@ -28,8 +29,31 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
   const [loading, setLoading] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [importShots, setImportShots] = useState([])
+  const [showMagic, setShowMagic] = useState(false)
+  const [magicText, setMagicText] = useState('')
 
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
+
+  const handleMagicFill = () => {
+    if (!magicText.trim()) return;
+    const parsed = parseProjectText(magicText);
+    setForm(prev => ({
+      ...prev,
+      name: parsed.name || prev.name,
+      client: parsed.client || prev.client,
+      deadline: parsed.deadline || prev.deadline,
+      targetAudience: parsed.targetAudience || prev.targetAudience,
+      concept: parsed.concept || prev.concept,
+      styleGuideNotes: parsed.styleGuideNotes || prev.styleGuideNotes,
+      styleGuideLinks: [...new Set([...prev.styleGuideLinks, ...parsed.styleGuideLinks])],
+      formatSpec: parsed.formatSpec || prev.formatSpec,
+    }));
+    if (parsed.shots && parsed.shots.length > 0) {
+      setImportShots(parsed.shots);
+    }
+    setShowMagic(false);
+    setMagicText('');
+  }
 
   const addLink = () => {
     if (isValidHttpUrl(newLink)) {
@@ -162,29 +186,61 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
             </button>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-              <label className="form-label">Nama Proyek *</label>
-              <input
-                type="text"
-                placeholder="Project W — Americano"
-                value={form.name}
-                onChange={e => update('name', e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Klien *</label>
-              <input
-                type="text"
-                placeholder="Project W"
-                value={form.client}
-                onChange={e => update('client', e.target.value)}
-                required
-              />
-            </div>
-          </div>
+          <div className="modal__content">
+            <form id="project-form" onSubmit={handleSubmit} className="project-form">
+
+              {/* Magic Auto-Fill */}
+              <div className="form-group" style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showMagic ? '12px' : '0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontWeight: 'bold' }}>
+                    <Wand2 size={16} /> Magic Auto-Fill
+                  </div>
+                  <button type="button" onClick={() => setShowMagic(!showMagic)} style={{ fontSize: '12px', background: 'var(--bg-elevated)', border: '1px solid var(--border-card)', padding: '4px 10px', borderRadius: '4px', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold' }}>
+                    {showMagic ? 'Batal' : 'Coba Sekarang'}
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {showMagic && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: '1.4' }}>
+                        Paste (Ctrl+V) seluruh teks dari dokumen Kertas Kerja Anda di bawah ini. Sistem akan otomatis mengisi formulir dan mengekstrak daftar shot.
+                      </p>
+                      <textarea
+                        value={magicText}
+                        onChange={(e) => setMagicText(e.target.value)}
+                        placeholder="Paste dokumen di sini..."
+                        style={{ width: '100%', height: '140px', background: 'var(--bg-elevated)', border: '1px solid var(--border-card)', borderRadius: '6px', padding: '10px', color: 'var(--text-primary)', fontSize: '13px', resize: 'vertical' }}
+                      />
+                      <button type="button" onClick={handleMagicFill} className="btn-primary" style={{ width: '100%', marginTop: '10px', padding: '8px' }}>
+                        Terapkan Magic Fill
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Nama Proyek *</label>
+                  <input
+                    type="text"
+                    placeholder="Project W — Americano"
+                    value={form.name}
+                    onChange={e => update('name', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Klien *</label>
+                  <input
+                    type="text"
+                    placeholder="Project W"
+                    value={form.client}
+                    onChange={e => update('client', e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
 
           <div className="form-group">
             <label className="form-label">Deadline</label>

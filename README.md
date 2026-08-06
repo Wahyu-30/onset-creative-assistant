@@ -107,13 +107,15 @@ File `AGENTS.md` berisi detail lengkap mengenai arsitektur, struktur data, CSS v
 - Optimistic UI updates untuk pengalaman pengguna yang mulus.
 - Injeksi data sampel satu-klik via tombol "Isi Data Sample".
 
-### ✅ Fase 3 (Sebagian Selesai) — Media & Kertas Kerja
+### ✅ Fase 3 (Selesai) — Media, Ekspor, & Import Cepat
 - **Integrasi Supabase Storage**: Upload foto/video referensi langsung (auto-compress ~200KB).
 - **Ekspor PDF Kertas Kerja**: Cetak format Kertas Kerja produksi (Info Project + Shot List) sebagai PDF.
+- **Magic Auto-Fill**: Import seluruh naskah dan informasi detail Kertas Kerja secara langsung via *Copy-Paste* teks, dilengkapi AI/Regex pintar untuk ekstraksi data otomatis.
 - **Dashboard Analitik (Basic)**: Pantau progress dan statistik seluruh proyek di halaman utama.
 
 ### 🔜 Fase Lanjutan (Sedang Berjalan)
-- **CSV / Google Sheets Import**: Import shot list dari template Excel/Sheets ke dalam aplikasi secara otomatis.
+- **Ekspor Word (.doc)**: (Sudah tersedia untuk kertas kerja).
+- **Integrasi Kalender**: Pengingat jadwal *shoot* secara otomatis.
 ---
 
 ## 📝 Catatan Tambahan

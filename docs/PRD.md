@@ -361,7 +361,9 @@ onset-creative-assistant/
 
 ### 🔜 Fase 3 — Extended Features (Rencana)
 - Google Sheets Import (import shot list dari template ke Supabase)
-- Ekspor PDF Call Sheet
+- Ekspor PDF Call Sheet (Sudah diimplementasikan sebagian)
+- Ekspor DOCX (Sudah diimplementasikan)
+- **Magic Auto-Fill**: Impor seluruh informasi Kertas Kerja via Copy-Paste
 - Dashboard analitik multi-proyek
 
 ---
@@ -404,3 +406,4 @@ onset-creative-assistant/
 | 1.1 | Agustus 2026 | Keputusan final dikonfirmasi: localStorage Fase 1, Backend Proxy Fase 2, Firebase Fase 3. Multi-proyek. No login. |
 | 2.0 | Agustus 2026 | **Fase 2 Selesai**: Migrasi ke Supabase PostgreSQL + Real-time WebSocket. Rencana Fase 2 (Google Sheets) digantikan oleh Supabase yang lebih sederhana dan lebih powerful. Semua item Fase 2 baru ditandai selesai. |
 | 2.1 | Agustus 2026 | **Fitur Baru**: Implementasi arsitektur Multi-Shot per Scene. UI dikelompokkan menggunakan `SceneGroup`. Penambahan field `shotNumber` di Supabase. Perbaikan fitur reorder dan penomoran otomatis. |
+| 2.2 | Agustus 2026 | **Fitur Baru**: Implementasi **Magic Auto-Fill** untuk import Kertas Kerja keseluruhan via Copy-Paste teks. Ekspor dokumen ke Word/DOCX. |

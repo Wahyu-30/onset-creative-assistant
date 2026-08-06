@@ -46,6 +46,65 @@ export const parseUnstructuredText = (text) => {
   return Array.from(shotsMap.values());
 };
 
+// Smart Parser untuk Kertas Kerja Keseluruhan
+export const parseProjectText = (text) => {
+  const result = {
+    name: '',
+    client: '',
+    deadline: '',
+    targetAudience: '',
+    concept: '',
+    styleGuideNotes: '',
+    styleGuideLinks: [],
+    formatSpec: '',
+    shots: []
+  };
+
+  if (!text) return result;
+
+  // Helper untuk mengekstrak teks di antara dua section header
+  const extractSection = (regexStart, regexEnd) => {
+    const match = text.match(regexStart);
+    if (!match) return '';
+    const startIdx = match.index + match[0].length;
+    const endMatch = text.substring(startIdx).match(regexEnd);
+    if (endMatch) {
+      return text.substring(startIdx, startIdx + endMatch.index).trim();
+    }
+    return text.substring(startIdx).trim();
+  };
+
+  // Ekstrak baris per baris untuk data pendek
+  const klienMatch = text.match(/Klien\s*:\s*(.+)/i);
+  const namaMatch = text.match(/Nama\s*:\s*(.+)/i);
+  result.client = klienMatch ? klienMatch[1].trim() : (namaMatch ? namaMatch[1].trim() : 'Proyek Baru');
+  result.name = namaMatch ? namaMatch[1].trim() : (klienMatch ? klienMatch[1].trim() : 'Proyek Baru');
+  
+  const deadlineMatch = text.match(/Deadline\s*:\s*(.+)/i);
+  if (deadlineMatch) result.deadline = deadlineMatch[1].trim();
+
+  // Ekstrak section panjang (Tujuan, Konsep, Panduan Gaya, Spesifikasi)
+  const sectionEndRegex = /(?:Konsep\/Ide\/Detail Konten:|Panduan Gaya:|Referensi:|Spesifikasi Ukuran\/Format:|Riwayat Kerja:|Alur & Naskah Video:)/i;
+  
+  result.targetAudience = extractSection(/Tujuan\s*\/?\s*Target Audience:\s*/i, sectionEndRegex);
+  result.concept = extractSection(/Konsep\/Ide\/Detail Konten:\s*/i, sectionEndRegex);
+  result.styleGuideNotes = extractSection(/Panduan Gaya:\s*/i, sectionEndRegex);
+  result.formatSpec = extractSection(/Spesifikasi Ukuran\/Format:\s*/i, sectionEndRegex);
+
+  // Ekstrak Links
+  const refText = extractSection(/Referensi:\s*/i, sectionEndRegex);
+  if (refText) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = refText.match(urlRegex);
+    if (urls) result.styleGuideLinks = urls;
+  }
+
+  // Ekstrak shots (jika ada) menggunakan parser lama
+  result.shots = parseUnstructuredText(text);
+
+  return result;
+};
+
 // Utility untuk mendeteksi kolom berdasarkan header (Fuzzy Match)
 export const parseShotTable = (rows) => {
   if (!rows || rows.length === 0) return [];
