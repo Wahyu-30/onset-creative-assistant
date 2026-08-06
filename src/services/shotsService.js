@@ -7,7 +7,8 @@ export const shotsService = {
       .select('*')
       .eq('project_id', projectId)
       .order('scene', { ascending: true })
-      .order('updatedAt', { ascending: true })
+      .order('shotNumber', { ascending: true })
+      .order('id', { ascending: true })
     
     if (error) {
       console.error('Error fetching shots:', error)

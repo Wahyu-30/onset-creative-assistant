@@ -35,7 +35,7 @@ export function useShots(projectId) {
               return mapped.sort((a, b) => {
                 if (a.scene !== b.scene) return a.scene - b.scene
                 if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
-                return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+                return a.id > b.id ? 1 : -1
               })
             })
           } else if (payload.eventType === 'DELETE') {
@@ -94,7 +94,7 @@ export function useShots(projectId) {
         return newArr.sort((a, b) => {
           if (a.scene !== b.scene) return a.scene - b.scene
           if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
-          return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+          return a.id > b.id ? 1 : -1
         })
       })
       return newShot
@@ -153,7 +153,7 @@ export function useShots(projectId) {
         return mapped.sort((a, b) => {
           if (a.scene !== b.scene) return a.scene - b.scene
           if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
-          return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+          return a.id > b.id ? 1 : -1
         })
       })
       await shotsService.updateShot(shotId, updates)
@@ -181,12 +181,11 @@ export function useShots(projectId) {
     updateShot(shotId, { notes })
   }
 
-  // Geser shot ke atas atau bawah (swap scene number & updatedAt)
   const moveShot = async (shotId, direction) => {
     const sorted = [...shots].sort((a, b) => {
       if (a.scene !== b.scene) return a.scene - b.scene
       if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
-      return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+      return a.id > b.id ? 1 : -1
     })
     const idx = sorted.findIndex(s => s.id === shotId)
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1
@@ -195,28 +194,41 @@ export function useShots(projectId) {
     const a = sorted[idx]
     const b = sorted[swapIdx]
     const tempScene = a.scene
-    const tempUpdatedAt = a.updatedAt
-    const tempShotNumber = a.shotNumber || 1
+    
+    // Fix: If shotNumbers are the same (or missing), assign them explicit sequential numbers so swap actually works
+    let aShotNum = a.shotNumber || 1
+    let bShotNum = b.shotNumber || 1
+    if (aShotNum === bShotNum) {
+      aShotNum = idx + 1
+      bShotNum = swapIdx + 1
+    }
+
+    const tempShotNumber = aShotNum
 
     // Optimistic update
     setShots(prev => {
-      const mapped = prev.map(s => {
-        if (s.id === a.id) return { ...s, scene: b.scene, updatedAt: b.updatedAt, shotNumber: b.shotNumber || 1 }
-        if (s.id === b.id) return { ...s, scene: tempScene, updatedAt: tempUpdatedAt, shotNumber: tempShotNumber }
+      return prev.map(s => {
+        if (s.id === a.id) return { ...s, scene: b.scene, shotNumber: bShotNum }
+        if (s.id === b.id) return { ...s, scene: tempScene, shotNumber: tempShotNumber }
         return s
-      })
-      return mapped.sort((a, b) => {
-        if (a.scene !== b.scene) return a.scene - b.scene
-        if ((a.shotNumber || 1) !== (b.shotNumber || 1)) return (a.shotNumber || 1) - (b.shotNumber || 1)
-        return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+      }).sort((x, y) => {
+        if (x.scene !== y.scene) return x.scene - y.scene
+        if ((x.shotNumber || 1) !== (y.shotNumber || 1)) return (x.shotNumber || 1) - (y.shotNumber || 1)
+        return x.id > y.id ? 1 : -1
       })
     })
 
     try {
-      await Promise.all([
-        shotsService.reorderShot(a.id, b.scene, b.updatedAt, b.shotNumber || 1),
-        shotsService.reorderShot(b.id, tempScene, tempUpdatedAt, tempShotNumber)
-      ])
+      // Update A
+      await shotsService.updateShot(a.id, { 
+        scene: b.scene, 
+        shotNumber: bShotNum
+      })
+      // Update B
+      await shotsService.updateShot(b.id, { 
+        scene: tempScene, 
+        shotNumber: tempShotNumber
+      })
     } catch (err) {
       console.error(err)
       fetchShots()
