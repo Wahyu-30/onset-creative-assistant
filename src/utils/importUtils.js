@@ -72,6 +72,45 @@ export const parseUnstructuredText = (text) => {
     }
   }
 
+  if (shotsMap.size === 0) {
+    // Coba parsing format bullet points jika tidak ada "Scene 1" dsb
+    const alurMatch = text.match(/Alur\s*(?:&|dan)?\s*Naskah\s*Video\s*:\s*([\s\S]*?)(?:Arahan Editing:|Referensi|Spesifikasi|$)/i);
+    if (alurMatch) {
+      const alurText = alurMatch[1];
+      const bulletRegex = /(?:^|\n)[●\-\*]\s*([^:]+):\s*(.*)/g;
+      let bMatch;
+      let bIndex = 1;
+      
+      while ((bMatch = bulletRegex.exec(alurText)) !== null) {
+        const title = bMatch[1].trim(); // misal: "Hook (Detik 1-7)"
+        const content = bMatch[2].trim(); // misal: "Talent menunjukkan keseruan... Dialog: \"...\""
+        
+        let dialog = '';
+        let action = content;
+        
+        const qMatch = content.match(/["“]([^"”]+)["”]/);
+        if (qMatch) {
+          dialog = qMatch[1].trim();
+          action = content.replace(qMatch[0], '').trim();
+        }
+
+        // Hilangkan kata "Dialog:" dari action jika ada
+        action = action.replace(/Dialog\s*:\s*/gi, '').trim();
+        
+        shotsMap.set(bIndex, {
+          scene: bIndex,
+          sceneLabel: title,
+          shotType: '',
+          angle: '',
+          dialog: dialog,
+          briefAction: action,
+          equipment: []
+        });
+        bIndex++;
+      }
+    }
+  }
+
   return Array.from(shotsMap.values());
 };
 
@@ -103,10 +142,41 @@ export const parseProjectText = (text) => {
     return text.substring(startIdx).trim();
   };
 
-  const klienMatch = text.match(/Klien\s*:\s*(.+)/i);
-  const namaMatch = text.match(/Nama\s*:\s*(.+)/i);
-  result.client = klienMatch ? klienMatch[1].trim() : (namaMatch ? namaMatch[1].trim() : 'Proyek Baru');
-  result.name = namaMatch ? namaMatch[1].trim() : (klienMatch ? klienMatch[1].trim() : 'Proyek Baru');
+  const klienMatch = text.match(/(?:Klien|Brand)\s*:\s*(.+)/i);
+  let namaMatch = text.match(/Nama\s*:\s*(.+)/i);
+  
+  // Jika "Nama:" kosong dan malah menangkap baris "Tanggal" di bawahnya
+  if (namaMatch && (namaMatch[1].trim() === '' || namaMatch[1].toLowerCase().includes('tanggal'))) {
+    namaMatch = null;
+  }
+  const headlineMatch = text.match(/Headline\s*:\s*(.+)/i);
+
+  // Penentuan Nama Proyek
+  if (headlineMatch && headlineMatch[1].trim()) {
+    result.name = headlineMatch[1].trim();
+  } else if (namaMatch && namaMatch[1].trim()) {
+    result.name = namaMatch[1].trim();
+  } else if (klienMatch && klienMatch[1].trim()) {
+    result.name = klienMatch[1].trim();
+  } else {
+    result.name = 'Proyek Baru';
+  }
+
+  // Penentuan Nama Klien (Fuzzy matching brand)
+  const textLower = text.toLowerCase();
+  if (textLower.includes('grillme') || textLower.includes('grill me')) {
+    result.client = 'Grillme';
+  } else if (textLower.includes('om jack')) {
+    result.client = 'Om Jack';
+  } else if (textLower.includes('project w')) {
+    result.client = 'Project W';
+  } else if (klienMatch && klienMatch[1].trim()) {
+    result.client = klienMatch[1].trim();
+  } else if (result.name !== 'Proyek Baru') {
+    result.client = result.name;
+  } else {
+    result.client = 'Klien Baru';
+  }
   
   const deadlineMatch = text.match(/Deadline\s*:\s*(.+)/i);
   if (deadlineMatch) result.deadline = parseIndonesianDate(deadlineMatch[1].trim());
