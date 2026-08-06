@@ -1,0 +1,70 @@
+.theme-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-elevated);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9999;
+  transition: all var(--transition-normal);
+}
+
+.theme-toggle:hover {
+  transform: translateY(-4px);
+  background-color: var(--bg-card-hover);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+}
+
+.theme-toggle__icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle__icon {
+  animation: rotateIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sun-icon {
+  color: #FFD740;
+}
+
+.moon-icon {
+  color: #A78BFA;
+}
+
+@keyframes rotateIn {
+  0% {
+    transform: rotate(-90deg) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Light Mode specific overrides for the button itself if needed */
+body.light-mode .theme-toggle {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .theme-toggle:hover {
+  background-color: var(--bg-card-hover);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+}

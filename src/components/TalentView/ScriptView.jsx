@@ -1,4 +1,7 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MonitorPlay } from 'lucide-react'
+import Teleprompter from '../Teleprompter/Teleprompter'
 import './ScriptView.css'
 
 // Parse dialog tags like <EKSPRESI KAGET>
@@ -23,18 +26,31 @@ function parseDialogTags(text) {
 }
 
 export default function ScriptView({ shots, activeSceneFilter }) {
+  const [showTeleprompter, setShowTeleprompter] = useState(false)
+
   const filteredShots = activeSceneFilter
     ? shots.filter(s => s.scene === activeSceneFilter)
     : shots
 
   return (
+    <>
     <div className="script-view">
-      <div className="script-view__header">
-        <span className="script-view__icon">📝</span>
-        <div>
-          <h2 className="script-view__title">Mode Talent</h2>
-          <p className="script-view__subtitle">Tampilan naskah — info teknis disembunyikan</p>
+      <div className="script-view__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span className="script-view__icon">📝</span>
+          <div>
+            <h2 className="script-view__title">Mode Talent</h2>
+            <p className="script-view__subtitle">Tampilan naskah — info teknis disembunyikan</p>
+          </div>
         </div>
+        <button 
+          className="btn-primary" 
+          onClick={() => setShowTeleprompter(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '24px' }}
+        >
+          <MonitorPlay size={16} />
+          <span>Teleprompter</span>
+        </button>
       </div>
 
       <div className="script-view__list">
@@ -73,5 +89,15 @@ export default function ScriptView({ shots, activeSceneFilter }) {
         )}
       </div>
     </div>
+    
+    <AnimatePresence>
+      {showTeleprompter && (
+        <Teleprompter 
+          shots={filteredShots} 
+          onClose={() => setShowTeleprompter(false)} 
+        />
+      )}
+    </AnimatePresence>
+    </>
   )
 }

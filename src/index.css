@@ -72,6 +72,55 @@
   --bottom-nav-height: 64px;
 }
 
+/* --- Light Mode Variables --- */
+body.light-mode {
+  --bg-base: #F8F9FA;
+  --bg-surface: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F1F3F5;
+  --bg-elevated: #FFFFFF;
+  --bg-input: #F1F3F5;
+
+  --accent-primary: #5A52FF;
+  --accent-primary-glow: rgba(90, 82, 255, 0.25);
+  --accent-secondary: #8B5CF6;
+  --accent-primary-soft: rgba(90, 82, 255, 0.1);
+  --accent-primary-border: rgba(90, 82, 255, 0.2);
+
+  --status-pending: #607D8B;
+  --status-pending-bg: rgba(96, 125, 139, 0.1);
+  --status-pending-border: rgba(96, 125, 139, 0.2);
+  --status-done: #00C853;
+  --status-done-bg: rgba(0, 200, 83, 0.1);
+  --status-done-border: rgba(0, 200, 83, 0.2);
+  --status-revisi: #D50000;
+  --status-revisi-bg: rgba(213, 0, 0, 0.1);
+  --status-revisi-border: rgba(213, 0, 0, 0.2);
+
+  --text-primary: #1A1A24;
+  --text-secondary: #5F6368;
+  --text-muted: #80868B;
+  --text-inverse: #FFFFFF;
+
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-card: rgba(0, 0, 0, 0.12);
+  --border-active: rgba(90, 82, 255, 0.5);
+
+  --talent-action: #E53935;
+  --talent-action-bg: rgba(229, 57, 53, 0.1);
+  --talent-action-border: rgba(229, 57, 53, 0.2);
+  --talent-emotion: #F57F17;
+  --talent-emotion-bg: rgba(245, 127, 23, 0.1);
+  --talent-emotion-border: rgba(245, 127, 23, 0.2);
+  --talent-tone: #00BFA5;
+  --talent-tone-bg: rgba(0, 191, 165, 0.1);
+  --talent-tone-border: rgba(0, 191, 165, 0.2);
+
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 16px var(--accent-primary-glow);
+}
+
 /* --- Reset --- */
 *, *::before, *::after {
   box-sizing: border-box;
