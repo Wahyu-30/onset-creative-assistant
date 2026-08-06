@@ -114,6 +114,8 @@
 .prod-info-panel {
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
+  max-height: 50vh;
+  overflow-y: auto;
 }
 
 .prod-info-panel__inner {

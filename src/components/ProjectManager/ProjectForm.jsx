@@ -110,19 +110,28 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
       } else {
         const newProject = await onCreate(projectData)
         if (newProject && importShots.length > 0) {
-          const newShotsData = importShots.map((shot, idx) => ({
-            ...shot,
-            project_id: newProject.id,
-            status: 'PENDING',
-            updatedAt: new Date(Date.now() + idx).toISOString()
-          }))
+          const sceneCounters = {}
+          const newShotsData = importShots.map((shot, idx) => {
+            const sceneNum = shot.scene || 1
+            if (!sceneCounters[sceneNum]) sceneCounters[sceneNum] = 0
+            sceneCounters[sceneNum] += 1
+            
+            return {
+              ...shot,
+              scene: sceneNum,
+              shotNumber: sceneCounters[sceneNum],
+              project_id: newProject.id,
+              status: 'PENDING',
+              updatedAt: new Date(Date.now() + idx).toISOString()
+            }
+          })
           await shotsService.bulkAddShots(newShotsData)
         }
       }
       onClose()
     } catch (err) {
       console.error(err)
-      alert('Gagal menyimpan proyek.')
+      alert('Gagal menyimpan detail tambahan proyek (shots). Proyek utama berhasil dibuat.')
     } finally {
       setLoading(false)
     }
