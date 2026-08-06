@@ -1,30 +1,59 @@
 import * as mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
 
+// Helper untuk mengubah tanggal "7 Juli 2026" menjadi "2026-07-07"
+const parseIndonesianDate = (dateStr) => {
+  if (!dateStr) return '';
+  const months = {
+    'januari': '01', 'jan': '01',
+    'februari': '02', 'feb': '02',
+    'maret': '03', 'mar': '03',
+    'april': '04', 'apr': '04',
+    'mei': '05',
+    'juni': '06', 'jun': '06',
+    'juli': '07', 'jul': '07',
+    'agustus': '08', 'agu': '08', 'agus': '08',
+    'september': '09', 'sep': '09',
+    'oktober': '10', 'okt': '10',
+    'november': '11', 'nov': '11',
+    'desember': '12', 'des': '12'
+  };
+  const parts = dateStr.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/);
+  if (parts.length >= 3) {
+    let day = parts[0];
+    if (day.length === 1) day = '0' + day;
+    let month = months[parts[1]] || '01';
+    let year = parts[2];
+    if (year.length === 2) year = '20' + year;
+    return `${year}-${month}-${day}`;
+  }
+  return '';
+};
+
 // Smart Parser untuk Teks Bebas (Bukan Tabel)
 export const parseUnstructuredText = (text) => {
-  // Mencari "Scene 1", "1. Scene 1:", "Scene 1 - Hook", dsb.
-  const regex = /(?:^|\n)(?:\d+\.\s*)?Scene\s*(\d+)(.*?)(?=(?:^|\n)(?:\d+\.\s*)?Scene\s*\d+|$)/gis;
+  // Perbaiki typo umum seperti "Scene :" menjadi "Scene 1:"
+  let cleanText = text.replace(/Scene\s*:/g, 'Scene 1:');
+  
+  // Mencari "Scene 1", "1. Scene 1:", "Scene 1 - Hook"
+  const regex = /(?:^|\n)(?:\d+\.\s*)?Scene\s*(\d+)\s*[:\-]?\s*(.*?)(?=(?:^|\n)(?:\d+\.\s*)?Scene\s*\d+|$|Panduan Gaya|Referensi)/gis;
   const shotsMap = new Map();
   let match;
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = regex.exec(cleanText)) !== null) {
     const sceneNumber = parseInt(match[1], 10);
     let content = match[2].trim();
     
-    // Hilangkan karakter pemisah di awal (seperti ": ", "- ", dll)
+    // Hilangkan awalan jika masih ada
     content = content.replace(/^[:\-]\s*/, '');
 
     if (shotsMap.has(sceneNumber)) {
-      // Jika scene ini sudah ada sebelumnya (misalnya bagian Action di atas, bagian Text/Dialog di bawah)
       const existing = shotsMap.get(sceneNumber);
-      // Asumsikan bagian kedua ini adalah dialog tambahan atau text
       existing.dialog = (existing.dialog + '\n' + content).trim();
     } else {
       let dialog = '';
       let briefAction = content;
       
-      // Tebak dialog dari tanda kutip
       const quoteMatch = content.match(/"([^"]+)"/);
       if (quoteMatch) {
         dialog = quoteMatch[1].trim();
@@ -52,6 +81,7 @@ export const parseProjectText = (text) => {
     name: '',
     client: '',
     deadline: '',
+    shootDate: '',
     targetAudience: '',
     concept: '',
     styleGuideNotes: '',
@@ -62,7 +92,6 @@ export const parseProjectText = (text) => {
 
   if (!text) return result;
 
-  // Helper untuk mengekstrak teks di antara dua section header
   const extractSection = (regexStart, regexEnd) => {
     const match = text.match(regexStart);
     if (!match) return '';
@@ -74,32 +103,35 @@ export const parseProjectText = (text) => {
     return text.substring(startIdx).trim();
   };
 
-  // Ekstrak baris per baris untuk data pendek
   const klienMatch = text.match(/Klien\s*:\s*(.+)/i);
   const namaMatch = text.match(/Nama\s*:\s*(.+)/i);
   result.client = klienMatch ? klienMatch[1].trim() : (namaMatch ? namaMatch[1].trim() : 'Proyek Baru');
   result.name = namaMatch ? namaMatch[1].trim() : (klienMatch ? klienMatch[1].trim() : 'Proyek Baru');
   
   const deadlineMatch = text.match(/Deadline\s*:\s*(.+)/i);
-  if (deadlineMatch) result.deadline = deadlineMatch[1].trim();
+  if (deadlineMatch) result.deadline = parseIndonesianDate(deadlineMatch[1].trim());
 
-  // Ekstrak section panjang (Tujuan, Konsep, Panduan Gaya, Spesifikasi)
-  const sectionEndRegex = /(?:Konsep\/Ide\/Detail Konten:|Panduan Gaya:|Referensi:|Spesifikasi Ukuran\/Format:|Riwayat Kerja:|Alur & Naskah Video:)/i;
+  const shootDateMatch = text.match(/Tanggal\s*(?:Shooting)?\s*:\s*(.+)/i);
+  if (shootDateMatch) result.shootDate = parseIndonesianDate(shootDateMatch[1].trim());
+
+  // Ekstrak section panjang, perhatikan kata 'Text:' sebagai pemisah juga
+  const sectionEndRegex = /(?:Konsep\/Ide\/Detail Konten:|Panduan Gaya:|Referensi:|Spesifikasi Ukuran\/Format:|Riwayat Kerja:|Alur & Naskah Video:|Text:|Video reels)/i;
   
   result.targetAudience = extractSection(/Tujuan\s*\/?\s*Target Audience:\s*/i, sectionEndRegex);
   result.concept = extractSection(/Konsep\/Ide\/Detail Konten:\s*/i, sectionEndRegex);
   result.styleGuideNotes = extractSection(/Panduan Gaya:\s*/i, sectionEndRegex);
   result.formatSpec = extractSection(/Spesifikasi Ukuran\/Format:\s*/i, sectionEndRegex);
 
-  // Ekstrak Links
-  const refText = extractSection(/Referensi:\s*/i, sectionEndRegex);
+  const refText = extractSection(/Referensi:\s*/i, /(?:Spesifikasi Ukuran\/Format:|Riwayat Kerja:|$)/i);
   if (refText) {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const urls = refText.match(urlRegex);
-    if (urls) result.styleGuideLinks = urls;
+    if (urls) {
+      // Bersihkan url dari tanda kurung tutup jika menempel
+      result.styleGuideLinks = urls.map(u => u.replace(/\)$/, ''));
+    }
   }
 
-  // Ekstrak shots (jika ada) menggunakan parser lama
   result.shots = parseUnstructuredText(text);
 
   return result;

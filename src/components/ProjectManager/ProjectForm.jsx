@@ -42,6 +42,7 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
       name: parsed.name || prev.name,
       client: parsed.client || prev.client,
       deadline: parsed.deadline || prev.deadline,
+      shootDate: parsed.shootDate || prev.shootDate,
       targetAudience: parsed.targetAudience || prev.targetAudience,
       concept: parsed.concept || prev.concept,
       styleGuideNotes: parsed.styleGuideNotes || prev.styleGuideNotes,
