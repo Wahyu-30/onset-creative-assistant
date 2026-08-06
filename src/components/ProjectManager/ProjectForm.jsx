@@ -408,6 +408,7 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
             {loading ? <div className="spinner" /> : (isEdit ? '💾 Simpan Perubahan' : '🚀 Buat Proyek')}
           </button>
         </form>
+        </div>
         </motion.div>
       </motion.div>
 
