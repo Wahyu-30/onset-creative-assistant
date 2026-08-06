@@ -1,8 +1,8 @@
 .scene-group {
   margin-bottom: 16px;
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border-radius: 12px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-subtle);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -18,13 +18,13 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
   transition: background-color 0.2s ease;
 }
 
 .scene-group__header:hover {
-  background: var(--bg-elevated);
+  background: var(--bg-card-hover);
 }
 
 .scene-group__header-left {
@@ -52,10 +52,10 @@
 .scene-group__count {
   font-size: 12px;
   color: var(--text-muted);
-  background: var(--bg-secondary);
+  background: var(--bg-elevated);
   padding: 2px 8px;
   border-radius: 12px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-card);
 }
 
 .scene-group__header-right {
@@ -66,8 +66,8 @@
 }
 
 .scene-group__add-btn {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-card);
   color: var(--text-secondary);
   border-radius: 6px;
   width: 26px;
@@ -86,7 +86,7 @@
 }
 
 .scene-group__content {
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
 }
 
 .scene-group__shots {
@@ -100,7 +100,7 @@
 .shot-card--multi {
   margin-bottom: 0 !important;
   box-shadow: none !important;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-card);
 }
 
 .shot-card--multi:hover {
@@ -108,7 +108,7 @@
 }
 
 .shot-card--multi .shot-card__scene-badge {
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   color: var(--text-secondary);
 }
 

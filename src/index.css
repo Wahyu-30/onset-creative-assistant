@@ -13,6 +13,7 @@
   --bg-card-hover: #1A1A35;
   --bg-elevated: #1E1E3A;
   --bg-input: #1A1A2E;
+  --bg-glass: rgba(20, 20, 42, 0.8);
 
   --accent-primary: #6C63FF;
   --accent-primary-glow: rgba(108, 99, 255, 0.35);
@@ -80,6 +81,7 @@ body.light-mode {
   --bg-card-hover: #F1F3F5;
   --bg-elevated: #FFFFFF;
   --bg-input: #F1F3F5;
+  --bg-glass: rgba(255, 255, 255, 0.85);
 
   --accent-primary: #5A52FF;
   --accent-primary-glow: rgba(90, 82, 255, 0.25);
@@ -205,7 +207,7 @@ input::placeholder, textarea::placeholder {
 
 /* --- Utility Classes --- */
 .glass {
-  background: rgba(20, 20, 42, 0.8);
+  background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-card);
