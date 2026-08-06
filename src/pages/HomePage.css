@@ -207,7 +207,7 @@
 
 .project-card__progress-bar {
   height: 3px;
-  background: var(--bg-elevated);
+  background: var(--border-card); /* Changed from bg-elevated to border-card for light mode visibility */
   border-radius: 2px;
   overflow: hidden;
 }

@@ -56,7 +56,7 @@
 /* Bar */
 .prod-progress__bar-track {
   height: 6px;
-  background: var(--bg-elevated);
+  background: var(--border-card); /* Changed from bg-elevated for light mode visibility */
   border-radius: var(--radius-full);
   overflow: hidden;
   position: relative;
