@@ -30,25 +30,20 @@ const parseIndonesianDate = (dateStr) => {
   return '';
 };
 
-// Smart Parser untuk Teks Bebas (Bukan Tabel)
 export const parseUnstructuredText = (text) => {
-  // Perbaiki typo umum seperti "Scene :" menjadi "Scene 1:"
   let cleanText = text.replace(/Scene\s*:/g, 'Scene 1:');
-  
-  // Mencari "Scene 1", "1. Scene 1:", "Scene 1 - Hook"
   const regex = /(?:^|\n)(?:\d+\.\s*)?Scene\s*(\d+)\s*[:\-]?\s*(.*?)(?=(?:^|\n)(?:\d+\.\s*)?Scene\s*\d+|$|Panduan Gaya|Referensi)/gis;
-  const shotsMap = new Map();
+  
+  // Map untuk menyimpan data per scene sementara
+  const scenesMap = new Map();
   let match;
 
   while ((match = regex.exec(cleanText)) !== null) {
     const sceneNumber = parseInt(match[1], 10);
-    let content = match[2].trim();
-    
-    // Hilangkan awalan jika masih ada
-    content = content.replace(/^[:\-]\s*/, '');
+    let content = match[2].trim().replace(/^[:\-]\s*/, '');
 
-    if (shotsMap.has(sceneNumber)) {
-      const existing = shotsMap.get(sceneNumber);
+    if (scenesMap.has(sceneNumber)) {
+      const existing = scenesMap.get(sceneNumber);
       existing.dialog = (existing.dialog + '\n' + content).trim();
     } else {
       let dialog = '';
@@ -60,20 +55,16 @@ export const parseUnstructuredText = (text) => {
         briefAction = content.replace(quoteMatch[0], '').trim();
       }
 
-      shotsMap.set(sceneNumber, {
+      scenesMap.set(sceneNumber, {
         scene: sceneNumber,
         sceneLabel: `Scene ${sceneNumber}`,
-        shotType: '',
-        angle: '',
         dialog: dialog,
-        briefAction: briefAction,
-        equipment: []
+        briefAction: briefAction
       });
     }
   }
 
-  if (shotsMap.size === 0) {
-    // Coba parsing format bullet points jika tidak ada "Scene 1" dsb
+  if (scenesMap.size === 0) {
     const alurMatch = text.match(/Alur\s*(?:&|dan)?\s*Naskah\s*Video\s*:\s*([\s\S]*?)(?:Arahan Editing:|Referensi|Spesifikasi|$)/i);
     if (alurMatch) {
       const alurText = alurMatch[1];
@@ -82,8 +73,8 @@ export const parseUnstructuredText = (text) => {
       let bIndex = 1;
       
       while ((bMatch = bulletRegex.exec(alurText)) !== null) {
-        const title = bMatch[1].trim(); // misal: "Hook (Detik 1-7)"
-        const content = bMatch[2].trim(); // misal: "Talent menunjukkan keseruan... Dialog: \"...\""
+        const title = bMatch[1].trim();
+        const content = bMatch[2].trim();
         
         let dialog = '';
         let action = content;
@@ -94,24 +85,67 @@ export const parseUnstructuredText = (text) => {
           action = content.replace(qMatch[0], '').trim();
         }
 
-        // Hilangkan kata "Dialog:" dari action jika ada
         action = action.replace(/Dialog\s*:\s*/gi, '').trim();
         
-        shotsMap.set(bIndex, {
+        scenesMap.set(bIndex, {
           scene: bIndex,
           sceneLabel: title,
-          shotType: '',
-          angle: '',
           dialog: dialog,
-          briefAction: action,
-          equipment: []
+          briefAction: action
         });
         bIndex++;
       }
     }
   }
 
-  return Array.from(shotsMap.values());
+  // Pecah briefAction menjadi beberapa shot jika ada penomoran (1. ... 2. ... 3. ...)
+  const allShots = [];
+  
+  for (const [sceneNumber, sceneData] of scenesMap.entries()) {
+    const actionText = sceneData.briefAction;
+    
+    // Cari pola "1. teks 2. teks" dsb. Kita asumsikan angka diikuti titik dan spasi
+    const shotRegex = /(?:^|\s+)(\d+)\.\s+(.*?)(?=(?:\s+\d+\.\s+|$))/g;
+    const subShots = [];
+    let sMatch;
+    
+    while ((sMatch = shotRegex.exec(actionText)) !== null) {
+      subShots.push(sMatch[2].trim());
+    }
+
+    if (subShots.length > 1) {
+      // Jika ada lebih dari satu shot dalam scene ini
+      subShots.forEach((subAction, index) => {
+        allShots.push({
+          scene: sceneNumber,
+          sceneLabel: sceneData.sceneLabel,
+          shotType: '',
+          angle: '',
+          dialog: index === 0 ? sceneData.dialog : '', // Dialog hanya di shot pertama
+          briefAction: subAction,
+          equipment: []
+        });
+      });
+    } else {
+      // Jika hanya satu shot
+      let singleAction = actionText;
+      // Hilangkan awalan "1. " jika hanya ada 1 point
+      if (singleAction.match(/^\d+\.\s+/)) {
+        singleAction = singleAction.replace(/^\d+\.\s+/, '');
+      }
+      allShots.push({
+        scene: sceneNumber,
+        sceneLabel: sceneData.sceneLabel,
+        shotType: '',
+        angle: '',
+        dialog: sceneData.dialog,
+        briefAction: singleAction,
+        equipment: []
+      });
+    }
+  }
+
+  return allShots;
 };
 
 // Smart Parser untuk Kertas Kerja Keseluruhan
