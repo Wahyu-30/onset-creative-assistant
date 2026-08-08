@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Package, AlignLeft, Quote, Link2, ChevronDown, ChevronUp, CheckCircle2,
-  RotateCcw, StickyNote, Image, Video, Edit3, Trash2, ExternalLink
+  RotateCcw, StickyNote, Image, Video, Edit3, Trash2, ExternalLink, Plus, X, Check
 } from 'lucide-react'
 import StatusBadge from './StatusBadge'
 import ImageViewer from '../ImageViewer/ImageViewer'
 import QuickLog from './QuickLog'
+import { shotsService } from '../../services/shotsService'
 
 function getDirectImageUrl(url) {
   if (!url) return url;
@@ -60,12 +61,140 @@ function RefImage({ img, index, onClick }) {
   )
 }
 
-export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast, index, isMultiShot }) {
+// Inline editable textarea — klik langsung bisa ketik, blur auto-save
+function InlineTextarea({ value, placeholder, onSave, rows = 3 }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value || '')
+
+  const handleSave = useCallback(() => {
+    setEditing(false)
+    if (draft !== (value || '')) onSave(draft)
+  }, [draft, value, onSave])
+
+  if (editing) {
+    return (
+      <div style={{ position: 'relative' }}>
+        <textarea
+          autoFocus
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={e => {
+            if (e.key === 'Escape') { setDraft(value || ''); setEditing(false) }
+            if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); handleSave() }
+          }}
+          rows={rows}
+          style={{
+            width: '100%', background: 'var(--bg-elevated)', border: '1.5px solid var(--accent-primary)',
+            borderRadius: '8px', padding: '10px 48px 10px 12px', color: 'var(--text-primary)',
+            fontSize: '13px', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit'
+          }}
+        />
+        <div style={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 4 }}>
+          <button type="button" onMouseDown={e => { e.preventDefault(); handleSave() }}
+            style={{ background: 'var(--accent-primary)', border: 'none', borderRadius: '4px', padding: '3px 7px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Check size={12} />
+          </button>
+          <button type="button" onMouseDown={e => { e.preventDefault(); setDraft(value || ''); setEditing(false) }}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-card)', borderRadius: '4px', padding: '3px 7px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <X size={12} />
+          </button>
+        </div>
+        <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 4 }}>Ctrl+Enter simpan · Esc batal</p>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      onClick={e => { e.stopPropagation(); setDraft(value || ''); setEditing(true) }}
+      title="Klik untuk edit"
+      style={{ cursor: 'text', padding: '8px 10px', borderRadius: '8px', border: '1.5px dashed transparent', transition: 'border-color 0.15s, background 0.15s', minHeight: '36px' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'var(--bg-elevated)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }}
+    >
+      {value
+        ? <span style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{value}</span>
+        : <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{placeholder}</span>
+      }
+    </div>
+  )
+}
+
+// Inline URL list — tambah/hapus referensi langsung dari kartu
+function InlineUrlList({ urls = [], onSave, placeholder, icon: Icon }) {
+  const [newUrl, setNewUrl] = useState('')
+  const [showInput, setShowInput] = useState(false)
+
+  const handleAdd = () => {
+    if (!newUrl.trim()) return
+    onSave([...urls, newUrl.trim()])
+    setNewUrl(''); setShowInput(false)
+  }
+
+  return (
+    <div onClick={e => e.stopPropagation()}>
+      {urls.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+          {urls.map((url, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', borderRadius: '6px', padding: '6px 8px', border: '1px solid var(--border-card)' }}>
+              <Icon size={11} color="var(--accent-secondary)" style={{ flexShrink: 0 }} />
+              <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--accent-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: 'none' }} onClick={e => e.stopPropagation()}>
+                {url.length > 45 ? url.slice(0, 45) + '...' : url}
+              </a>
+              <button type="button" onClick={() => onSave(urls.filter((_, idx) => idx !== i))}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--status-revisi)', padding: '2px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {showInput ? (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input autoFocus type="url" value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder={placeholder}
+            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowInput(false) }}
+            style={{ flex: 1, background: 'var(--bg-elevated)', border: '1.5px solid var(--accent-primary)', borderRadius: '6px', padding: '7px 10px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none', fontFamily: 'inherit' }} />
+          <button type="button" onClick={handleAdd}
+            style={{ background: 'var(--accent-primary)', border: 'none', borderRadius: '6px', padding: '7px 10px', color: 'white', cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
+            <Check size={13} />
+          </button>
+          <button type="button" onClick={() => { setShowInput(false); setNewUrl('') }}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-card)', borderRadius: '6px', padding: '7px 10px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
+            <X size={13} />
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setShowInput(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '12px', color: 'var(--accent-primary)', background: 'transparent', border: '1px dashed var(--accent-primary-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', width: '100%', justifyContent: 'center', fontFamily: 'inherit' }}>
+          <Plus size={13} />
+          {urls.length > 0 ? 'Tambah lagi' : placeholder}
+        </button>
+      )}
+    </div>
+  )
+}
+
+export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast, index, isMultiShot, onShotUpdate }) {
   const [expanded, setExpanded] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
   const [showLog, setShowLog] = useState(false)
   const [expandOverflow, setExpandOverflow] = useState('hidden')
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const handleInlineSave = useCallback(async (field, value) => {
+    setSaving(true)
+    try {
+      const updated = await shotsService.updateShot(shot.id, { [field]: value })
+      if (onShotUpdate) onShotUpdate(updated)
+    } catch (err) {
+      console.error('Inline save error:', err)
+      alert('Gagal menyimpan perubahan.')
+    } finally {
+      setSaving(false)
+    }
+  }, [shot.id, onShotUpdate])
 
 
   const handleTakeDone = (e) => {
@@ -185,13 +314,18 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
           </div>
         </div>
 
-        {/* Brief Action — always visible */}
-        {shot.briefAction && (
-          <div className="shot-card__brief">
-            <AlignLeft size={12} color="var(--text-muted)" />
-            <p className="shot-card__brief-text">{shot.briefAction}</p>
+        {/* Brief Action — selalu tampil, inline editable */}
+        <div className="shot-card__brief" style={{ alignItems: 'flex-start' }} onClick={e => e.stopPropagation()}>
+          <AlignLeft size={12} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: 10 }} />
+          <div style={{ flex: 1 }}>
+            <InlineTextarea
+              value={shot.briefAction}
+              placeholder="Ketuk untuk mengisi brief action..."
+              rows={3}
+              onSave={(val) => handleInlineSave('briefAction', val)}
+            />
           </div>
-        )}
+        </div>
 
         {/* Expanded Details */}
         <AnimatePresence initial={false}>
@@ -229,73 +363,45 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                   </div>
                 )}
 
-                {/* Dialog / Script */}
-                {shot.dialog && (
-                  <div className="shot-card__detail-row">
-                    <div className="shot-card__detail-label">
-                      <Quote size={12} />
-                      Dialog / Naskah
-                    </div>
-                    <div className="shot-card__dialog">
-                      {parseDialog(shot.dialog)}
-                    </div>
-                  </div>
-                )}
+                {/* Dialog — inline editable */}
+                <div className="shot-card__detail-row">
+                  <div className="shot-card__detail-label"><Quote size={12} /> Dialog / Naskah</div>
+                  <InlineTextarea
+                    value={shot.dialog}
+                    placeholder="Ketuk untuk mengisi dialog atau naskah Talent..."
+                    rows={4}
+                    onSave={(val) => handleInlineSave('dialog', val)}
+                  />
+                </div>
 
-                {/* Reference Images */}
-                {shot.referenceImages?.length > 0 ? (
-                  <div className="shot-card__detail-row">
-                    <div className="shot-card__detail-label">
-                      <Image size={12} />
-                      Foto Referensi Framing
-                    </div>
-                    <div className="shot-card__images">
+                {/* Foto Referensi — inline add/remove */}
+                <div className="shot-card__detail-row">
+                  <div className="shot-card__detail-label"><Image size={12} /> Foto Referensi Framing</div>
+                  {shot.referenceImages?.length > 0 && (
+                    <div className="shot-card__images" style={{ marginBottom: 8 }}>
                       {shot.referenceImages.map((img, i) => (
-                        <RefImage
-                          key={i}
-                          img={img}
-                          index={i}
-                          onClick={(directUrl) => setViewerImg(directUrl)}
-                        />
+                        <RefImage key={i} img={img} index={i} onClick={(u) => setViewerImg(u)} />
                       ))}
                     </div>
-                  </div>
-                ) : (
-                  <div className="shot-card__ref-empty">
-                    <Image size={13} />
-                    <span>Belum ada foto referensi — tap Edit untuk menambahkan</span>
-                  </div>
-                )}
+                  )}
+                  <InlineUrlList
+                    urls={shot.referenceImages || []}
+                    onSave={(val) => handleInlineSave('referenceImages', val)}
+                    placeholder="Tambah URL foto referensi"
+                    icon={Image}
+                  />
+                </div>
 
-                {/* Reference Video Links */}
-                {shot.referenceLinks?.length > 0 ? (
-                  <div className="shot-card__detail-row">
-                    <div className="shot-card__detail-label">
-                      <Video size={12} />
-                      Video Referensi (TikTok / Reels)
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {shot.referenceLinks.map((link, i) => (
-                        <a
-                          key={i}
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="shot-card__ref-link"
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <Video size={11} />
-                          {link.length > 40 ? link.slice(0, 40) + '...' : link}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="shot-card__ref-empty">
-                    <Video size={13} />
-                    <span>Belum ada link video referensi — tap Edit untuk menambahkan</span>
-                  </div>
-                )}
+                {/* Video Referensi — inline add/remove */}
+                <div className="shot-card__detail-row">
+                  <div className="shot-card__detail-label"><Video size={12} /> Video Referensi (TikTok / Reels)</div>
+                  <InlineUrlList
+                    urls={shot.referenceLinks || []}
+                    onSave={(val) => handleInlineSave('referenceLinks', val)}
+                    placeholder="Tambah URL video referensi"
+                    icon={Link2}
+                  />
+                </div>
 
                 {/* Notes */}
                 {shot.notes && (
@@ -322,10 +428,11 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
             <button
               className="shot-card__log-btn"
               onClick={() => onEdit(shot)}
-              aria-label={`Edit ${shot.sceneLabel}`}
+              aria-label={`Edit lanjutan ${shot.sceneLabel}`}
+              title="Edit teknis: Scene, Shot Type, Angle, Equipment"
             >
               <Edit3 size={13} />
-              Edit
+              Edit Lanjutan
             </button>
           </div>
 
