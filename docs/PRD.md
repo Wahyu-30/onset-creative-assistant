@@ -407,3 +407,4 @@ onset-creative-assistant/
 | 2.0 | Agustus 2026 | **Fase 2 Selesai**: Migrasi ke Supabase PostgreSQL + Real-time WebSocket. Rencana Fase 2 (Google Sheets) digantikan oleh Supabase yang lebih sederhana dan lebih powerful. Semua item Fase 2 baru ditandai selesai. |
 | 2.1 | Agustus 2026 | **Fitur Baru**: Implementasi arsitektur Multi-Shot per Scene. UI dikelompokkan menggunakan `SceneGroup`. Penambahan field `shotNumber` di Supabase. Perbaikan fitur reorder dan penomoran otomatis. |
 | 2.2 | Agustus 2026 | **Fitur Baru**: Implementasi **Magic Auto-Fill** untuk import Kertas Kerja keseluruhan via Copy-Paste teks. Ekspor dokumen ke Word/DOCX. |
+| 2.3 | Agustus 2026 | **Fitur Baru**: **Inline Shot Editing** untuk mengedit teks dan referensi langsung dari badan kartu shot (Click-to-Edit, Auto-save). Peningkatan algoritma regex pada Magic Auto-Fill untuk memecah daftar urutan (1. ..., 2. ...) menjadi shot yang terpisah. |
