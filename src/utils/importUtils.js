@@ -44,22 +44,12 @@ export const parseUnstructuredText = (text) => {
 
     if (scenesMap.has(sceneNumber)) {
       const existing = scenesMap.get(sceneNumber);
-      existing.dialog = (existing.dialog + '\n' + content).trim();
+      existing.rawContent = (existing.rawContent + '\n' + content).trim();
     } else {
-      let dialog = '';
-      let briefAction = content;
-      
-      const quoteMatch = content.match(/"([^"]+)"/);
-      if (quoteMatch) {
-        dialog = quoteMatch[1].trim();
-        briefAction = content.replace(quoteMatch[0], '').trim();
-      }
-
       scenesMap.set(sceneNumber, {
         scene: sceneNumber,
         sceneLabel: `Scene ${sceneNumber}`,
-        dialog: dialog,
-        briefAction: briefAction
+        rawContent: content
       });
     }
   }
@@ -101,8 +91,29 @@ export const parseUnstructuredText = (text) => {
   // Pecah briefAction menjadi beberapa shot jika ada penomoran (1. ... 2. ... 3. ...)
   const allShots = [];
   
+  // Helper function to extract dialog from a specific shot text
+  const extractDialogFromShot = (text) => {
+    let dialog = '';
+    let action = text;
+    
+    // Check if there is an explicit "Dialog:" marker
+    const dialogMarkerMatch = text.match(/Dialog\s*:\s*([\s\S]*)$/i);
+    if (dialogMarkerMatch) {
+      dialog = dialogMarkerMatch[1].trim();
+      action = text.replace(dialogMarkerMatch[0], '').trim();
+    } else {
+      // Fallback to first quote extraction if no explicit marker
+      const quoteMatch = text.match(/["“]([^"”]+)["”]/);
+      if (quoteMatch) {
+        dialog = quoteMatch[1].trim();
+        action = text.replace(quoteMatch[0], '').trim();
+      }
+    }
+    return { dialog, action };
+  };
+
   for (const [sceneNumber, sceneData] of scenesMap.entries()) {
-    const actionText = sceneData.briefAction;
+    const actionText = sceneData.rawContent || sceneData.briefAction; // Use rawContent if available
     
     // Cari pola "1. teks 2. teks" dsb. Kita asumsikan angka diikuti titik dan spasi
     const shotRegex = /(?:^|\s+)(\d+)\.\s+(.*?)(?=(?:\s+\d+\.\s+|$))/g;
@@ -116,13 +127,14 @@ export const parseUnstructuredText = (text) => {
     if (subShots.length > 1) {
       // Jika ada lebih dari satu shot dalam scene ini
       subShots.forEach((subAction, index) => {
+        const { dialog, action } = extractDialogFromShot(subAction);
         allShots.push({
           scene: sceneNumber,
           sceneLabel: sceneData.sceneLabel,
           shotType: '',
           angle: '',
-          dialog: index === 0 ? sceneData.dialog : '', // Dialog hanya di shot pertama
-          briefAction: subAction,
+          dialog: dialog, 
+          briefAction: action,
           equipment: []
         });
       });
@@ -133,13 +145,15 @@ export const parseUnstructuredText = (text) => {
       if (singleAction.match(/^\d+\.\s+/)) {
         singleAction = singleAction.replace(/^\d+\.\s+/, '');
       }
+      
+      const { dialog, action } = extractDialogFromShot(singleAction);
       allShots.push({
         scene: sceneNumber,
         sceneLabel: sceneData.sceneLabel,
         shotType: '',
         angle: '',
-        dialog: sceneData.dialog,
-        briefAction: singleAction,
+        dialog: dialog || sceneData.dialog || '', // Fallback to scene-level dialog if defined
+        briefAction: action || sceneData.briefAction || '',
         equipment: []
       });
     }
