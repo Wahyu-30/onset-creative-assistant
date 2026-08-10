@@ -62,7 +62,7 @@ function RefImage({ img, index, onClick }) {
 }
 
 // Inline editable textarea — klik langsung bisa ketik, blur auto-save
-function InlineTextarea({ value, placeholder, onSave, rows = 3 }) {
+function InlineTextarea({ value, placeholder, onSave, rows = 3, renderValue }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value || '')
 
@@ -114,7 +114,7 @@ function InlineTextarea({ value, placeholder, onSave, rows = 3 }) {
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }}
     >
       {value
-        ? <span style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{value}</span>
+        ? <span style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{renderValue ? renderValue(value) : value}</span>
         : <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{placeholder}</span>
       }
     </div>
@@ -302,10 +302,11 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
               </button>
             </div>
             {hasReferences && (
-              <span className="shot-card__reference-indicator" title={`Referensi: ${referenceLabel}`}>
-                {imageCount > 0 && <span>📷{imageCount}</span>}
-                {videoCount > 0 && <span>🎬{videoCount}</span>}
-              </span>
+              <div className="shot-card__reference-indicator" title={`Referensi: ${referenceLabel}`}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  Ada Referensi {imageCount > 0 && `(📷 ${imageCount})`} {videoCount > 0 && `(🎬 ${videoCount})`}
+                </span>
+              </div>
             )}
             <StatusBadge status={shot.status} size="sm" />
             <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -323,6 +324,20 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
               placeholder="Ketuk untuk mengisi brief action..."
               rows={3}
               onSave={(val) => handleInlineSave('briefAction', val)}
+            />
+          </div>
+        </div>
+
+        {/* Dialog — selalu tampil, inline editable */}
+        <div className="shot-card__brief" style={{ alignItems: 'flex-start', borderTop: 'none', paddingTop: 0 }} onClick={e => e.stopPropagation()}>
+          <Quote size={12} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: 10 }} />
+          <div style={{ flex: 1 }}>
+            <InlineTextarea
+              value={shot.dialog}
+              placeholder="Ketuk untuk mengisi dialog atau naskah Talent..."
+              rows={4}
+              renderValue={parseDialog}
+              onSave={(val) => handleInlineSave('dialog', val)}
             />
           </div>
         </div>
@@ -375,17 +390,6 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                     </div>
                   </div>
                 )}
-
-                {/* Dialog — inline editable */}
-                <div className="shot-card__detail-row">
-                  <div className="shot-card__detail-label"><Quote size={12} /> Dialog / Naskah</div>
-                  <InlineTextarea
-                    value={shot.dialog}
-                    placeholder="Ketuk untuk mengisi dialog atau naskah Talent..."
-                    rows={4}
-                    onSave={(val) => handleInlineSave('dialog', val)}
-                  />
-                </div>
 
                 {/* Foto Referensi — inline add/remove */}
                 <div className="shot-card__detail-row">
