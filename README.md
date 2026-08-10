@@ -110,8 +110,9 @@ File `AGENTS.md` berisi detail lengkap mengenai arsitektur, struktur data, CSS v
 ### ✅ Fase 3 (Selesai) — Media, Ekspor, & Import Cepat
 - **Integrasi Supabase Storage**: Upload foto/video referensi langsung (auto-compress ~200KB).
 - **Ekspor PDF Kertas Kerja**: Cetak format Kertas Kerja produksi (Info Project + Shot List) sebagai PDF.
-- **Magic Auto-Fill**: Import seluruh naskah dan informasi detail Kertas Kerja secara langsung via *Copy-Paste* teks, dilengkapi AI/Regex pintar untuk ekstraksi data otomatis (mendukung format bullet points dan multi-shot).
-- **Inline Shot Editing**: Mengedit dialog, brief action, dan referensi langsung dari Shot Card (click-to-edit) tanpa membuka form terpisah, tersimpan otomatis (auto-save) ke database.
+- **Magic Auto-Fill**: Import seluruh naskah dan informasi detail Kertas Kerja secara langsung via *Copy-Paste* teks. Pengguna memiliki kendali penuh terhadap pembagian Scene dan Shot.
+- **Inline Shot Editing**: Mengedit dialog, brief action, sfx, dan referensi langsung dari Shot Card (click-to-edit) tanpa membuka form terpisah, tersimpan otomatis (auto-save) ke database.
+- **Persistent Card UI & Universal References**: Menampilkan field penting (Dialog & SFX) secara persisten di kartu tanpa perlu di-expand. Serta menampilkan referensi project (universal) di bagian teratas daftar shot.
 - **Dashboard Analitik (Basic)**: Pantau progress dan statistik seluruh proyek di halaman utama.
 
 ### 🔜 Fase Lanjutan (Sedang Berjalan)
