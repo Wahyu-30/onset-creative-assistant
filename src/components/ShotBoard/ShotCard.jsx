@@ -327,6 +327,19 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
           </div>
         </div>
 
+        {/* SFX — selalu tampil, inline editable */}
+        <div className="shot-card__brief" style={{ alignItems: 'flex-start', borderTop: 'none', paddingTop: 0 }} onClick={e => e.stopPropagation()}>
+          <Volume2 size={12} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: 10 }} />
+          <div style={{ flex: 1 }}>
+            <InlineTextarea
+              value={shot.sfx}
+              placeholder="Ketuk untuk mengisi keterangan SFX..."
+              rows={2}
+              onSave={(val) => handleInlineSave('sfx', val)}
+            />
+          </div>
+        </div>
+
         {/* Expanded Details */}
         <AnimatePresence initial={false}>
           {expanded && (
@@ -371,17 +384,6 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                     placeholder="Ketuk untuk mengisi dialog atau naskah Talent..."
                     rows={4}
                     onSave={(val) => handleInlineSave('dialog', val)}
-                  />
-                </div>
-
-                {/* SFX — inline editable */}
-                <div className="shot-card__detail-row">
-                  <div className="shot-card__detail-label"><Volume2 size={12} /> Sound Effect (SFX)</div>
-                  <InlineTextarea
-                    value={shot.sfx}
-                    placeholder="Ketuk untuk mengisi keterangan SFX..."
-                    rows={2}
-                    onSave={(val) => handleInlineSave('sfx', val)}
                   />
                 </div>
 
