@@ -21,6 +21,7 @@ export default function ShotForm({ shots, editShot, targetScene, onAddShot, onUp
     equipment: editShot?.equipment || [],
     briefAction: editShot?.briefAction || '',
     dialog: editShot?.dialog || '',
+    sfx: editShot?.sfx || '',
     referenceImages: editShot?.referenceImages || [],
     referenceLinks: editShot?.referenceLinks || [],
   })
@@ -236,6 +237,17 @@ export default function ShotForm({ shots, editShot, targetScene, onAddShot, onUp
               placeholder="come make your coffee with us!"
               value={form.dialog}
               onChange={e => update('dialog', e.target.value)}
+            />
+          </div>
+
+          {/* SFX */}
+          <div className="form-group">
+            <label className="form-label">Sound Effect (SFX)</label>
+            <textarea
+              rows={2}
+              placeholder="Contoh: Suara swoosh, backsound tegang..."
+              value={form.sfx}
+              onChange={e => update('sfx', e.target.value)}
             />
           </div>
 

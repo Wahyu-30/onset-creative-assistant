@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Package, AlignLeft, Quote, Link2, ChevronDown, ChevronUp, CheckCircle2,
-  RotateCcw, StickyNote, Image, Video, Edit3, Trash2, ExternalLink, Plus, X, Check
+  RotateCcw, StickyNote, Image, Video, Edit3, Trash2, ExternalLink, Plus, X, Check, Volume2
 } from 'lucide-react'
 import StatusBadge from './StatusBadge'
 import ImageViewer from '../ImageViewer/ImageViewer'
@@ -371,6 +371,17 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                     placeholder="Ketuk untuk mengisi dialog atau naskah Talent..."
                     rows={4}
                     onSave={(val) => handleInlineSave('dialog', val)}
+                  />
+                </div>
+
+                {/* SFX — inline editable */}
+                <div className="shot-card__detail-row">
+                  <div className="shot-card__detail-label"><Volume2 size={12} /> Sound Effect (SFX)</div>
+                  <InlineTextarea
+                    value={shot.sfx}
+                    placeholder="Ketuk untuk mengisi referensi SFX..."
+                    rows={2}
+                    onSave={(val) => handleInlineSave('sfx', val)}
                   />
                 </div>
 
