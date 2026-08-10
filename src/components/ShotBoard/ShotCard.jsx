@@ -379,7 +379,7 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                   <div className="shot-card__detail-label"><Volume2 size={12} /> Sound Effect (SFX)</div>
                   <InlineTextarea
                     value={shot.sfx}
-                    placeholder="Ketuk untuk mengisi referensi SFX..."
+                    placeholder="Ketuk untuk mengisi keterangan SFX..."
                     rows={2}
                     onSave={(val) => handleInlineSave('sfx', val)}
                   />
