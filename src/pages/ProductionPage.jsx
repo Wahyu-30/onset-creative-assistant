@@ -319,7 +319,7 @@ export default function ProductionPage() {
                 {(project.styleGuide?.links?.length > 0 || project.styleGuide?.images?.length > 0) && (
                   <div style={{ background: 'rgba(108, 99, 255, 0.04)', border: '1px solid var(--accent-primary-border)', borderRadius: 'var(--radius-md)', padding: '12px 14px', marginBottom: 8 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-secondary)', textTransform: 'uppercase', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6, letterSpacing: '0.05em' }}>
-                      <Link2 size={13} /> Referensi Video & Foto (Universal)
+                      <Link2 size={13} /> Referensi Video & Foto
                     </div>
                     {project.styleGuide?.links?.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: project.styleGuide?.images?.length > 0 ? 12 : 0 }}>
