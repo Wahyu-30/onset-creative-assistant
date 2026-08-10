@@ -316,29 +316,48 @@ export default function ProductionPage() {
               <div className="prod-shot-list">
                 
                 {/* ── Universal References ── */}
-                {(project.styleGuide?.links?.length > 0 || project.styleGuide?.images?.length > 0) && (
+                {(project.styleGuide?.links?.length > 0 || project.styleGuide?.images?.length > 0 || project.styleGuide?.screenplay) && (
                   <div style={{ background: 'rgba(108, 99, 255, 0.04)', border: '1px solid var(--accent-primary-border)', borderRadius: 'var(--radius-md)', padding: '12px 14px', marginBottom: 8 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-secondary)', textTransform: 'uppercase', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6, letterSpacing: '0.05em' }}>
-                      <Link2 size={13} /> Referensi Video & Foto
-                    </div>
-                    {project.styleGuide?.links?.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: project.styleGuide?.images?.length > 0 ? 12 : 0 }}>
-                        {project.styleGuide.links.map((link, i) => (
-                           <a key={i} href={link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--accent-secondary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-elevated)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-card)', transition: 'background 0.2s' }}>
-                             <ExternalLink size={14} style={{ flexShrink: 0 }} />
-                             <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link}</span>
-                           </a>
-                        ))}
+                    
+                    {/* Screenplay Link */}
+                    {project.styleGuide?.screenplay && (
+                      <div style={{ marginBottom: (project.styleGuide?.links?.length > 0 || project.styleGuide?.images?.length > 0) ? 12 : 0, paddingBottom: (project.styleGuide?.links?.length > 0 || project.styleGuide?.images?.length > 0) ? 12 : 0, borderBottom: (project.styleGuide?.links?.length > 0 || project.styleGuide?.images?.length > 0) ? '1px dashed var(--border-subtle)' : 'none' }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-secondary)', textTransform: 'uppercase', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6, letterSpacing: '0.05em' }}>
+                          <FileText size={13} /> Panduan Screenplay / Naskah
+                        </div>
+                        <a href={project.styleGuide.screenplay} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(66, 133, 244, 0.1)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(66, 133, 244, 0.3)', transition: 'background 0.2s', fontWeight: 600 }}>
+                           <FileText size={16} color="#4285F4" style={{ flexShrink: 0 }} />
+                           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#4285F4' }}>Buka Dokumen Screenplay</span>
+                        </a>
                       </div>
                     )}
-                    {project.styleGuide?.images?.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {project.styleGuide.images.map((img, i) => (
-                           <button key={img} onClick={() => setViewerImg(img)} style={{ width: 70, height: 70, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-card)', overflow: 'hidden', cursor: 'pointer', padding: 0, background: 'var(--bg-elevated)', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-                             <img src={img} alt="Ref" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                           </button>
-                        ))}
-                      </div>
+
+                    {/* Video & Foto */}
+                    {(project.styleGuide?.links?.length > 0 || project.styleGuide?.images?.length > 0) && (
+                      <>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-secondary)', textTransform: 'uppercase', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6, letterSpacing: '0.05em' }}>
+                          <Link2 size={13} /> Referensi Video & Foto
+                        </div>
+                        {project.styleGuide?.links?.length > 0 && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: project.styleGuide?.images?.length > 0 ? 12 : 0 }}>
+                            {project.styleGuide.links.map((link, i) => (
+                               <a key={i} href={link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--accent-secondary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-elevated)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-card)', transition: 'background 0.2s' }}>
+                                 <ExternalLink size={14} style={{ flexShrink: 0 }} />
+                                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link}</span>
+                               </a>
+                            ))}
+                          </div>
+                        )}
+                        {project.styleGuide?.images?.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {project.styleGuide.images.map((img, i) => (
+                               <button key={img} onClick={() => setViewerImg(img)} style={{ width: 70, height: 70, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-card)', overflow: 'hidden', cursor: 'pointer', padding: 0, background: 'var(--bg-elevated)', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+                                 <img src={img} alt="Ref" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                               </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}

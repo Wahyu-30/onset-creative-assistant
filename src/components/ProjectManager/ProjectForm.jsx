@@ -22,7 +22,8 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
     shootDate: editProject?.styleGuide?.shootDate || '',
     shootTime: editProject?.styleGuide?.shootTime || '',
     shootLocation: editProject?.styleGuide?.shootLocation || '',
-    formatSpec: editProject?.styleGuide?.formatSpec || ''
+    formatSpec: editProject?.styleGuide?.formatSpec || '',
+    styleGuideScreenplay: editProject?.styleGuide?.screenplay || ''
   })
   const [newLink, setNewLink] = useState('')
   const [newImage, setNewImage] = useState('')
@@ -122,6 +123,7 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
         notes: form.styleGuideNotes,
         images: form.styleGuideImages,
         links: form.styleGuideLinks,
+        screenplay: form.styleGuideScreenplay,
         shootDate: form.shootDate,
         shootTime: form.shootTime,
         shootLocation: form.shootLocation,
@@ -317,6 +319,17 @@ export default function ProjectForm({ onClose, editProject, onCreate, onUpdate }
               placeholder="untuk referensi angle ajaa"
               value={form.styleGuideNotes}
               onChange={e => update('styleGuideNotes', e.target.value)}
+            />
+          </div>
+
+          <div className="form-group" style={{ padding: '12px', background: 'rgba(66, 133, 244, 0.05)', border: '1px dashed rgba(66, 133, 244, 0.3)', borderRadius: '8px' }}>
+            <label className="form-label" style={{ color: '#4285F4' }}>Link Screenplay / Dokumen Naskah</label>
+            <input
+              type="url"
+              placeholder="https://docs.google.com/..."
+              value={form.styleGuideScreenplay}
+              onChange={e => update('styleGuideScreenplay', e.target.value)}
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-card)' }}
             />
           </div>
 
