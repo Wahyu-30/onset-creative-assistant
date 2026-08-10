@@ -219,7 +219,7 @@ export const parseProjectText = (text) => {
   if (shootDateMatch) result.shootDate = parseIndonesianDate(shootDateMatch[1].trim());
 
   // Ekstrak section panjang, perhatikan kata 'Text:' sebagai pemisah juga
-  const sectionEndRegex = /(?:Konsep\/Ide\/Detail Konten:|Panduan Gaya:|Referensi:|Spesifikasi Ukuran\/Format:|Riwayat Kerja:|Alur & Naskah Video:|Text:|Video reels)/i;
+  const sectionEndRegex = /(?:^|\n)(?:Konsep\/Ide\/Detail Konten:|Panduan Gaya:|Referensi:|Spesifikasi Ukuran\/Format:|Riwayat Kerja:|Alur\s*(?:&|dan)?\s*Naskah\s*Video:|Text:|Video reels\s*\d*:\d*:|Scene\s*\d+)/i;
   
   result.targetAudience = extractSection(/Tujuan\s*\/?\s*Target Audience:\s*/i, sectionEndRegex);
   result.concept = extractSection(/Konsep\/Ide\/Detail Konten:\s*/i, sectionEndRegex);
