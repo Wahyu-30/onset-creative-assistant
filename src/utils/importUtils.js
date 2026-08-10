@@ -88,7 +88,6 @@ export const parseUnstructuredText = (text) => {
     }
   }
 
-  // Pecah briefAction menjadi beberapa shot jika ada penomoran (1. ... 2. ... 3. ...)
   const allShots = [];
   
   // Helper function to extract dialog from a specific shot text
@@ -114,49 +113,17 @@ export const parseUnstructuredText = (text) => {
 
   for (const [sceneNumber, sceneData] of scenesMap.entries()) {
     const actionText = sceneData.rawContent || sceneData.briefAction; // Use rawContent if available
-    
-    // Cari pola "1. teks 2. teks" dsb. Kita asumsikan angka diikuti titik dan spasi
-    const shotRegex = /(?:^|\s+)(\d+)\.\s+(.*?)(?=(?:\s+\d+\.\s+|$))/g;
-    const subShots = [];
-    let sMatch;
-    
-    while ((sMatch = shotRegex.exec(actionText)) !== null) {
-      subShots.push(sMatch[2].trim());
-    }
+    const { dialog, action } = extractDialogFromShot(actionText);
 
-    if (subShots.length > 1) {
-      // Jika ada lebih dari satu shot dalam scene ini
-      subShots.forEach((subAction, index) => {
-        const { dialog, action } = extractDialogFromShot(subAction);
-        allShots.push({
-          scene: sceneNumber,
-          sceneLabel: sceneData.sceneLabel,
-          shotType: '',
-          angle: '',
-          dialog: dialog, 
-          briefAction: action,
-          equipment: []
-        });
-      });
-    } else {
-      // Jika hanya satu shot
-      let singleAction = actionText;
-      // Hilangkan awalan "1. " jika hanya ada 1 point
-      if (singleAction.match(/^\d+\.\s+/)) {
-        singleAction = singleAction.replace(/^\d+\.\s+/, '');
-      }
-      
-      const { dialog, action } = extractDialogFromShot(singleAction);
-      allShots.push({
-        scene: sceneNumber,
-        sceneLabel: sceneData.sceneLabel,
-        shotType: '',
-        angle: '',
-        dialog: dialog || sceneData.dialog || '', // Fallback to scene-level dialog if defined
-        briefAction: action || sceneData.briefAction || '',
-        equipment: []
-      });
-    }
+    allShots.push({
+      scene: sceneNumber,
+      sceneLabel: sceneData.sceneLabel,
+      shotType: '',
+      angle: '',
+      dialog: dialog || sceneData.dialog || '',
+      briefAction: action || sceneData.briefAction || '',
+      equipment: []
+    });
   }
 
   return allShots;
