@@ -175,6 +175,86 @@ function InlineUrlList({ urls = [], onSave, placeholder, icon: Icon }) {
   )
 }
 
+// helper
+function isDriveLink(url) {
+  return url && url.includes('drive.google.com')
+}
+
+// Video Ref List — tap buka, bukan edit
+function VideoRefList({ urls = [], onSave, onOpenViewer }) {
+  const [newUrl, setNewUrl] = useState('')
+  const [showInput, setShowInput] = useState(false)
+
+  const handleAdd = () => {
+    if (!newUrl.trim()) return
+    onSave([...urls, newUrl.trim()])
+    setNewUrl(''); setShowInput(false)
+  }
+
+  const handleOpen = (url) => {
+    if (isDriveLink(url)) {
+      // buka di iframe viewer in-app
+      onOpenViewer(url)
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  return (
+    <div onClick={e => e.stopPropagation()}>
+      {urls.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+          {urls.map((url, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', borderRadius: '6px', padding: '6px 8px', border: '1px solid var(--border-card)' }}>
+              {/* Tombol buka */}
+              <button
+                type="button"
+                onClick={() => handleOpen(url)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0 }}
+              >
+                {isDriveLink(url)
+                  ? <Video size={11} color="#4285F4" style={{ flexShrink: 0 }} />
+                  : <ExternalLink size={11} color="var(--accent-secondary)" style={{ flexShrink: 0 }} />
+                }
+                <span style={{ fontSize: '12px', color: 'var(--accent-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {url.length > 45 ? url.slice(0, 45) + '...' : url}
+                </span>
+              </button>
+              {/* Tombol hapus */}
+              <button type="button" onClick={() => onSave(urls.filter((_, idx) => idx !== i))}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--status-revisi)', padding: '2px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {showInput ? (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input autoFocus type="url" value={newUrl} onChange={e => setNewUrl(e.target.value)}
+            placeholder="https://drive.google.com/... atau https://tiktok.com/..."
+            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowInput(false) }}
+            style={{ flex: 1, background: 'var(--bg-elevated)', border: '1.5px solid var(--accent-primary)', borderRadius: '6px', padding: '7px 10px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none', fontFamily: 'inherit' }} />
+          <button type="button" onClick={handleAdd}
+            style={{ background: 'var(--accent-primary)', border: 'none', borderRadius: '6px', padding: '7px 10px', color: 'white', cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
+            <Check size={13} />
+          </button>
+          <button type="button" onClick={() => { setShowInput(false); setNewUrl('') }}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-card)', borderRadius: '6px', padding: '7px 10px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
+            <X size={13} />
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setShowInput(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '12px', color: 'var(--accent-primary)', background: 'transparent', border: '1px dashed var(--accent-primary-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', width: '100%', justifyContent: 'center', fontFamily: 'inherit' }}>
+          <Plus size={13} />
+          {urls.length > 0 ? 'Tambah lagi' : 'Tambah URL video referensi'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast, index, isMultiShot, onShotUpdate }) {
   const [expanded, setExpanded] = useState(false)
   const [viewerImg, setViewerImg] = useState(null)
@@ -409,14 +489,13 @@ export default function ShotCard({ shot, onStatusChange, onNoteChange, onEdit, o
                   />
                 </div>
 
-                {/* Video Referensi — inline add/remove */}
+                {/* Video Referensi — smart open: Drive = iframe, lainnya = tab baru */}
                 <div className="shot-card__detail-row">
                   <div className="shot-card__detail-label"><Video size={12} /> Video Referensi (TikTok / Reels)</div>
-                  <InlineUrlList
+                  <VideoRefList
                     urls={shot.referenceLinks || []}
                     onSave={(val) => handleInlineSave('referenceLinks', val)}
-                    placeholder="Tambah URL video referensi"
-                    icon={Link2}
+                    onOpenViewer={(url) => setViewerImg(url)}
                   />
                 </div>
 
